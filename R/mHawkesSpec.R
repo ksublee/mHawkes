@@ -57,11 +57,11 @@ setClass(
     BETA = "matrixORvector",
     ETA = "matrixORvector",
     Jump = "Distribution"
-    )
+    ),
 
-  #prototype = list(
-  #  Jump = distr::Dirac(location = 1)
-  #)
+  prototype = list(
+    Jump = distr::Dirac(location = 1)
+  )
 
   #validity = check_dimension
 )
@@ -70,7 +70,7 @@ setClass(
 setMethod(
   "initialize",
   "mHSpec",
-  function(.Object, MU, ALPHA, BETA, ETA=NULL, Jump=NULL){
+  function(.Object, MU, ALPHA, BETA, ETA=NULL, Jump){
 
     .Object@MU <- MU
     .Object@ALPHA <- ALPHA
@@ -83,8 +83,8 @@ setMethod(
       .Object@ETA <- ETA
     }
 
-    if (is.null(Jump)) .Object@Jump <- distr::Dirac(location = 1)
-    else .Object@Jump <- Jump
+    #if (is.null(Jump)) .Object@Jump <- distr::Dirac(location = 1)
+    #else .Object@Jump <- Jump
 
     .Object
   }
