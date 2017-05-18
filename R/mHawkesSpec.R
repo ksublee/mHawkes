@@ -56,7 +56,7 @@ setClass(
     ALPHA = "matrixORvector",
     BETA = "matrixORvector",
     ETA = "matrixORvector",
-    Jump = "distr::Distribution"
+    Jump = "Distribution"
     )
 
   #prototype = list(
