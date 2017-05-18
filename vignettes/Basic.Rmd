@@ -4,7 +4,7 @@ author: "Kyungsub Lee"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{Basic example}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -20,7 +20,7 @@ install.packages("devtools")  #if devtools is not installed
 Install ```mHawkes``` from github.
 
 ```{r, eval=FALSE}
-devtools::install_github("ksublee/mHawkes")
+devtools::install_github("ksublee/mHawkes", build_vignettes=TRUE)
 ```
 
 
