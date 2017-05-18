@@ -1,0 +1,67 @@
+---
+title: "Basic example"
+author: "Kyungsub Lee"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+### one dimensional Hawkes process
+
+To install ```mHawkes```, first install ```devtools```.
+
+```{r, eval=FALSE}
+install.packages("devtools")  #if devtools is not installed
+```
+
+Install ```mHawkes``` from github.
+
+```{r, eval=FALSE}
+devtools::install_github("ksublee/mHawkes")
+```
+
+
+```{r}
+library("mHawkes")
+```
+
+
+First, create a mHSpec which define the Hawkes process.
+
+```{r}
+MU1 <- 0.2
+ALPHA1 <- 1.7
+BETA1 <- 2.0
+
+mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+```
+
+To simulate, use function ```mHSim```.
+
+```{r}
+L0 <- MU1  # naive way of setting an initial value for intensity lambda.
+res1 <- mHSim(mHSpec1, LAMBDA0=L0, n=1000)
+```
+
+Frome the result, we get a vector of realized inter arrival times.
+
+```{r}
+inter_arrival <- res1$inter_arrival
+```
+
+
+Log-likelihood is computed by a function ```loglikelihood```.
+
+```{r}
+loglikelihood(mHSpec1, inter_arrival = inter_arrival, LAMBDA0 = L0)
+```
+
+A log-likelihood estimation is performed using ```mHFit```.
+
+```{r}
+mle <- mHFit(mHSpec1, inter_arrival = inter_arrival,  LAMBDA0 = L0)
+print(summary(mle))
+```
