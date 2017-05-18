@@ -1,5 +1,5 @@
 
-#setOldClass("data.frame")
+
 setClassUnion("matrixORvector", c("matrix", "vector"))
 
 #' check the validity of parameter matrix dimesions
@@ -50,7 +50,7 @@ check_dimension <- function(object) {
 #' @slot MU
 setClass(
   "mHSpec",
-  # slots = list(MU = "matrix", ALPHA = "matrix", BETA = "matrix", ETA = "matrix", Jump = "Distribution"),
+  # slots = list(MU = "matrix", ALPHA = "matrix", BETA = "matrix", ETA = "matrix", Jump = "distr::Distribution"),
   representation(
     MU = "matrixORvector",
     ALPHA = "matrixORvector",
