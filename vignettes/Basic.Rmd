@@ -60,6 +60,7 @@ loglikelihood(mHSpec1, inter_arrival = inter_arrival, LAMBDA0 = L0)
 ```
 
 A log-likelihood estimation is performed using ```mHFit```.
+```mSpec1``` is regarded as a starting point of the numerical optimization.
 
 ```{r}
 mle <- mHFit(mHSpec1, inter_arrival = inter_arrival,  LAMBDA0 = L0)

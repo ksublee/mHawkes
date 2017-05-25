@@ -1,9 +1,10 @@
 Package: mHawkes
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Simulate and estimate marked Hawkes process
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
+Authors@R : person("Kyungsub", "Lee", email = "ksublee@yu.ac.kr",
+                  role = c("aut", "cre"))
+Maintainer: The package maintainer <ksublee@yu.ac.kr>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: What license is it under?
