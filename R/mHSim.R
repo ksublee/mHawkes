@@ -1,5 +1,11 @@
+# This code implements the markes Hawkes process simulation.
+
 setGeneric("mHSim", function(object, ...) standardGeneric("mHSim"))
 
+#' Simulate a marked Hawkes process
+#'
+#' @param LAMBDA0
+#' @param n
 setMethod(
   f="mHSim",
   signature(object = "mHSpec"),
@@ -7,6 +13,12 @@ setMethod(
 
     # dimension of Hawkes process
     dimens <- length(object@MU)
+
+    if( is.matrix(LAMBDA0) && nrow(LAMBDA0) != ncol(LAMBDA0))
+      stop("LAMBDA0 matrix should be n by n.")
+
+    if( is.matrix(LAMBDA0) && dimens != nrow(LAMBDA0))
+      stop("Check the dimension of LAMBDA0 matrix.")
 
     # parameter setting
     MU <- matrix(object@MU, nrow=dimens)
@@ -25,9 +37,9 @@ setMethod(
     Ng <- matrix(numeric(length = dimens * n), ncol = dimens)
     N  <- matrix(numeric(length = dimens * n), ncol = dimens)
 
-    jump_type <- numeric(length = n-1)
-    inter_arrival <- numeric(length = n-1)
-    mark <- numeric(length = n-1)
+    jump_type <- numeric(length = n - 1)
+    inter_arrival <- numeric(length = n - 1)
+    mark <- numeric(length = n - 1)
 
     names(lambda_process) <- paste0("lambda", 1:dimens)
     indxM <- matrix(rep(1:dimens, dimens), byrow = TRUE, nrow = dimens)
@@ -37,6 +49,7 @@ setMethod(
 
     # Exact method
     for (k in 1:(n-1)) {
+
       # Generate candidate arrivals
       # arrival due to mu
       candidate_arrival <- rexp(dimens, rate = MU)
@@ -54,11 +67,12 @@ setMethod(
       jumpType <- minIndex[1]  # row
       jump_type[k] <- jumpType
 
-      mark[k] <- distr::r(object@Jump)(1) # generate one random number
+      #mark[k] <- distr::r(object@Jump)(1) # generate one random number
+      mark[k] <- object@Jump(n = 1)  # generate one random number
 
       Ng[k+1, ] <- Ng[k, ]
       Ng[k+1, jumpType] <- Ng[k, jumpType] + 1
-      N[k+1, ] <- N[k,]
+      N[k+1, ] <- N[k, ]
       N[k+1, jumpType] <- N[k, jumpType] + mark[k]
 
       # update lambda
@@ -69,8 +83,8 @@ setMethod(
 
       # new_LAMBDA = [[lambda11, lambda12, ...], [lambda21, lambda22, ...], ...]
       # lambda_component = {"lambda11", "lambda12", ..., "lambda21", "lambda22", ...}
-      lambda_component[k+1, ] <- t(new_LAMBDA)
-      lambda_process[k+1, ] <- MU + rowSums(new_LAMBDA)
+      lambda_component[k + 1, ] <- t(new_LAMBDA)
+      lambda_process[k + 1, ] <- MU + rowSums(new_LAMBDA)
     }
 
     # convert to data frame

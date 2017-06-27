@@ -4,6 +4,7 @@ setGeneric("loglikelihood", function(object, ...) standardGeneric("loglikelihood
 #' @param inter_arrival
 #' @param jump_type
 #' @param mark
+#' @param LAMBDA0
 setMethod(
   f="loglikelihood",
   signature(object="mHSpec"),
@@ -21,7 +22,7 @@ setMethod(
     if(dimens==1 & is.null(jump_type)) {
       jump_type <- rep(1, length(inter_arrival))
     } else if (dimens!=1 & is.null(jump_type)) {
-      stop("The argument mark should be provided.")
+      stop("The argument jump_type should be provided.")
     }
 
     # parameter setting
@@ -86,7 +87,7 @@ setGeneric("mHFit", function(object, ...) standardGeneric("mHFit"))
 setMethod(
   f="mHFit",
   signature(object="mHSpec"),
-  function(object, inter_arrival, jump_type=NULL, mark=NULL, LAMBDA0=NULL, model="symmetric"){
+  function(object, inter_arrival, jump_type=NULL, mark=NULL, LAMBDA0=NULL, model="symmetric", constraint=TRUE, method="BFGS"){
 
     # When the mark sizes are not provided, the jumps are all unit jumps.
     unit <- FALSE
@@ -95,10 +96,8 @@ setMethod(
       unit <- TRUE
     }
 
-
     # dimension of Hawkes process
     dimens <- length(object@MU)
-
 
     # parameter setting
     MU <- matrix(object@MU, nrow=dimens)
@@ -170,7 +169,7 @@ setMethod(
       BETA <- matrix(rep(param[[1 + length(alphas) + 1]], dimens^2), nrow=dimens, byrow=TRUE)
 
       if (unit) ETA <- matrix(rep(0, dimens^2), nrow=dimens)
-      else ETA <- matrix(rep(param[[1 + length(alphas) + 1 + 1]], 4), nrow=dimens)
+      else ETA <- matrix(rep(param[[1 + length(alphas) + 1 + 1]], dimens^2), nrow=dimens)
 
       mHSpec1 <- new("mHSpec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, Jump=G)
 
@@ -186,9 +185,14 @@ setMethod(
 
     }
 
-    mle<-maxLik::maxLik(logLik=llh_maxLik,
-                        start=starting_point, constraint=list(ineqA=A, ineqB=B),
-                        method="BFGS")
+    if (constraint)
+      mle<-maxLik::maxLik(logLik=llh_maxLik,
+                          start=starting_point, constraint=list(ineqA=A, ineqB=B),
+                          method=method)
+    else
+      mle<-maxLik::maxLik(logLik=llh_maxLik,
+                          start=starting_point,
+                          method=method)
 
   }
 )

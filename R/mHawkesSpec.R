@@ -17,7 +17,7 @@ setClass(
     ALPHA = "matrixORvector",
     BETA = "matrixORvector",
     ETA = "matrixORvector",
-    Jump = "Distribution"
+    Jump = "function"
     )
 )
 
@@ -28,11 +28,11 @@ setMethod(
   function(.Object, MU, ALPHA, BETA, ETA=NULL, Jump=NULL){
 
     # If Jump is not provided, then Jump is constant 1.
-    if (is.null(Jump)) Jump <- distr::Dirac(location = 1)
+    if (is.null(Jump)) Jump <- function(n,...) rep(1,n)
 
     # length of each parameter should be 1 or even
-    if ( length(ALPHA) != 1 & length(ALPHA)%%2 != 0 ) stop("The length of ALPHA must be 1 or even")
-    if ( length(BETA) != 1 & length(BETA)%%2 != 0 ) stop("The length of BETA must be 1 or even")
+    if ( length(ALPHA) != 1 & length(ALPHA) %% 2 != 0 ) stop("The length of ALPHA must be 1 or even")
+    if ( length(BETA) != 1 & length(BETA) %% 2 != 0 ) stop("The length of BETA must be 1 or even")
 
     # If ETA is not provided, then ETA = 0 or zero matrix with the same dimension of BETA
     if (is.null(ETA)) {
@@ -42,13 +42,15 @@ setMethod(
     if ( length(ETA) != 1 & length(ETA)%%2 != 0 ) stop("The length of ETA must be 1 or even")
 
 
+
     # When one of MU, ALPHA, BETA, ETA is not one dimensional
     if ( length(MU)!=1 | length(ALPHA)!=1 | length(BETA)!=1 | length(ETA)!=1 ) {
 
+
       if ( !is.matrix(MU) ) MU <- matrix(MU)
       if ( !is.matrix(ALPHA) ) ALPHA <- matrix(ALPHA, nrow = length(ALPHA)/2)
-      if ( !is.matrix(BETA) ) BETA <- matrix(BETA, nrwo = length(BETA)/2)
-      if ( !is.matrix(ETA) ) ETA <- matrix(ETA, nrwo = length(ETA)/2)
+      if ( !is.matrix(BETA) ) BETA <- matrix(BETA, nrow = length(BETA)/2)
+      if ( !is.matrix(ETA) ) ETA <- matrix(ETA, nrow = length(ETA)/2)
 
       # The dimensions of parameter matrices should be consistent.
       if ( !( nrow(MU) == nrow(ALPHA) & nrow(ALPHA) == nrow(BETA) & nrow(BETA) == nrow(ETA)) )
