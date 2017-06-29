@@ -1,6 +1,7 @@
 setGeneric("loglikelihood", function(object, ...) standardGeneric("loglikelihood"))
 
-#' Estimate a marked Hawkes process
+#' Compute the loglikelihood function of the ground process
+#'
 #' @param inter_arrival
 #' @param jump_type
 #' @param mark
@@ -8,7 +9,7 @@ setGeneric("loglikelihood", function(object, ...) standardGeneric("loglikelihood
 setMethod(
   f="loglikelihood",
   signature(object="mHSpec"),
-  function(object, inter_arrival, jump_type=NULL, mark=NULL, LAMBDA0){
+  function(object, inter_arrival, jump_type=NULL, mark=NULL, LAMBDA0=NULL){
 
     # When the mark sizes are not provided, the jumps are all unit jumps
     if(is.null(mark)) {
@@ -18,7 +19,7 @@ setMethod(
     # dimension of Hawkes process
     dimens <- length(object@MU)
 
-    # if dimes == 1 and jump_type is not provided, then all jump_type is 1.
+    # if dimens == 1 and jump_type is not provided, then all jump_type is 1.
     if(dimens==1 & is.null(jump_type)) {
       jump_type <- rep(1, length(inter_arrival))
     } else if (dimens!=1 & is.null(jump_type)) {
@@ -30,6 +31,34 @@ setMethod(
     ALPHA <- matrix(object@ALPHA, nrow=dimens)
     BETA <- matrix(object@BETA, nrow=dimens)
     ETA <- matrix(object@ETA, nrow=dimens)
+
+    # default LAMBDA0
+    if(is.null(LAMBDA0)) {
+
+      if (dimens == 1){
+        lamb0 <- (MU[1]*BETA[1]/(BETA[1]- ALPHA[1]) - MU[1])/2
+        LAMBDA0 <- matrix(rep(lamb0, dimens^2), nrow=dimens, byrow=TRUE)
+
+      } else if (dimens == 2) {
+
+        #default LAMBDA0 with dimesion 2
+        LAMBDA0 <- matrix(rep(0, dimens^2), nrow=dimens)
+
+        H <- ALPHA[1,1]*BETA[1,2]*BETA[2,1]*(ALPHA[2,2] - BETA[2,2]) - BETA[1,1]*(ALPHA[2,2]*BETA[1,2]*BETA[2,1] + ALPHA[1,2]*ALPHA[2,1]*BETA[2,2] - BETA[1,2]*BETA[2,1]*BETA[2,2])
+
+        LAMBDA0[1, 1] <- ALPHA[1,1]*BETA[2,1]* ((BETA[2,2] - ALPHA[2,2])*BETA[1,2]*MU[1] + ALPHA[1,2]*BETA[2,2]*MU[2]) / H
+        LAMBDA0[1, 2] <- ALPHA[1,2]*BETA[2,2]* ((BETA[1,1] - ALPHA[1,1])*BETA[2,1]*MU[2] + ALPHA[2,1]*BETA[1,1]*MU[1]) / H
+        LAMBDA0[2, 1] <- ALPHA[2,1]*BETA[1,1]* ((BETA[2,2] - ALPHA[2,2])*BETA[1,2]*MU[1] + ALPHA[1,2]*BETA[2,2]*MU[2]) / H
+        LAMBDA0[2, 2] <- ALPHA[2,2]*BETA[1,2]* ((BETA[1,1] - ALPHA[1,1])*BETA[2,1]*MU[2] + ALPHA[2,1]*BETA[1,1]*MU[1]) / H
+
+
+      } else {
+        # for higher dimension, default LAMBDA0 will be ...
+        lamb0 <- (MU[1]*BETA[1]/(BETA[1]- sum(ALPHA[1:dimens])) - MU[1])/2
+        LAMBDA0 <- matrix(rep(lamb0, dimens^2), nrow=dimens, byrow=TRUE)
+      }
+    }
+
 
     # n is length(inter_arrival) then the length of lambda is n+1
     n <- length(inter_arrival)
@@ -50,11 +79,11 @@ setMethod(
 
     for (k in 1:n) {
 
-      current_LAMBDA <- matrix(as.numeric(lambda_component[k, ]), nrow = dimens, byrow = TRUE)
+      current_LAMBDA <- matrix(lambda_component[k, ], nrow = dimens, byrow = TRUE)
 
       # update lambda
       Impact <- matrix(rep(0, dimens^2), nrow = dimens)
-      Impact[ , jump_type[k]] <- ALPHA[ , jump_type[k]] + (1 + (mark[k] - 1)) * ETA[ , jump_type[k]]
+      Impact[ , jump_type[k]] <- ALPHA[ , jump_type[k]] * (1 + (mark[k] - 1) * ETA[ , jump_type[k]])
 
       decayed <- exp(-BETA * inter_arrival[k])
       decayed_LAMBDA <- current_LAMBDA * decayed
@@ -135,8 +164,6 @@ setMethod(
       starting_point <- c(mu = mu, alphas, beta = beta, eta = eta)
     }
 
-    G <- object@Jump
-
     # constraint matrix
     # mu, alpha, beta should be larger than zero
     if (unit) A <- diag(1, nrow = length(starting_point) - length(eta))
@@ -171,16 +198,10 @@ setMethod(
       if (unit) ETA <- matrix(rep(0, dimens^2), nrow=dimens)
       else ETA <- matrix(rep(param[[1 + length(alphas) + 1 + 1]], dimens^2), nrow=dimens)
 
-      mHSpec1 <- new("mHSpec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, Jump=G)
-
-      # default LAMBDA0
-      if(is.null(LAMBDA0)) {
-        lamb0 <- MU[1]*BETA[1]/(BETA[1]- sum(ALPHA[1:dimens]))
-        LAMBDA0 <- matrix(rep(lamb0, dimens^2), nrow=dimens, byrow=TRUE)
-      }
+      mHSpec0 <- new("mHSpec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, Jump=object@Jump)
 
 
-      llh <- loglikelihood(mHSpec1, inter_arrival = inter_arrival, jump_type = jump_type, mark, LAMBDA0)
+      llh <- loglikelihood(mHSpec0, inter_arrival = inter_arrival, jump_type = jump_type, mark = mark, LAMBDA0)
       return(llh)
 
     }

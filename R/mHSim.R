@@ -77,7 +77,7 @@ setMethod(
 
       # update lambda
       Impact <- matrix(rep(0, dimens^2), nrow = dimens)
-      Impact[ , jumpType] <- ALPHA[ , jumpType] + (1 + (mark[k] - 1)) * ETA[ , jumpType]
+      Impact[ , jumpType] <- ALPHA[ , jumpType] * (1 + (mark[k] - 1) * ETA[ , jumpType])
 
       new_LAMBDA <- current_LAMBDA * exp(-BETA * inter_arrival[k]) + Impact
 
