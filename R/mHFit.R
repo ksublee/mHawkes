@@ -67,19 +67,13 @@ setMethod(
     #else rowSums_LAMBDA0 <- rowSums(LAMBDA0)
     rowSums_LAMBDA0 <- rowSums(matrix(LAMBDA0, nrow=dimens))
 
-    # Preallocation for lambdas and Ns and set initial values for lambdas
-    lambda_component <- matrix(sapply(LAMBDA0, c, numeric(length = n)), ncol=dimens^2)
-    integrated_lambda_component <- matrix(numeric(length=dimens^2 * (n+1)), ncol = dimens^2)
-
-    lambda_lc_process   <- matrix(sapply(MU + rowSums_LAMBDA0, c, numeric(length = n)), ncol = dimens)
-    lambda_lc_component <- matrix(sapply(LAMBDA0, c, numeric(length = n)), ncol = dimens^2)
-
-
     sum_log_lambda <- 0
+    sum_integrated_lambda_component <- 0
 
     for (k in 1:n) {
-
-      current_LAMBDA <- matrix(lambda_component[k, ], nrow = dimens, byrow = TRUE)
+      # current_LAMBDA <- matrix(lambda_component[k, ], nrow = dimens, byrow = TRUE)
+      if (k == 1) current_LAMBDA <- LAMBDA0
+      else current_LAMBDA <- new_LAMBDA
 
       # update lambda
       Impact <- matrix(rep(0, dimens^2), nrow = dimens)
@@ -89,23 +83,17 @@ setMethod(
       decayed_LAMBDA <- current_LAMBDA * decayed
       new_LAMBDA <- decayed_LAMBDA + Impact
 
+      # sum of integrated_lambda_component
+      sum_integrated_lambda_component <- sum_integrated_lambda_component + sum(current_LAMBDA / BETA * ( 1 - decayed ))
 
-      # new_LAMBDA = [[lambda11, lambda12, ...], [lambda21, lambda22, ...], ...]
-      # lambda_component = ["lambda11", "lambda12", ..., "lambda21", "lambda22", ...]
-      # lambda_process = [lambda1, lambda2, ...]
-      # integrated_lambda_component
-      lambda_component[k+1, ] <- t(new_LAMBDA)
-      lambda_lc_component[k+1, ] <- t(decayed_LAMBDA)
-      integrated_lambda_component[k+1, ] <- current_LAMBDA/BETA*( 1- decayed)
+      # sum of log lambda when jump occurs
+      lambda_lc <- MU + rowSums(decayed_LAMBDA)
+      sum_log_lambda <- sum_log_lambda + log(lambda_lc[jump_type[k]])
 
-      #lambda_process[k+1, ] <- MU + rowSums(new_LAMBDA)
-      lambda_lc_process[k+1, ] <- MU + rowSums(decayed_LAMBDA)
-
-      sum_log_lambda <- sum_log_lambda + log(lambda_lc_process[k+1, jump_type[k]])
     }
 
     # log likelihood for ground process
-    sum_log_lambda - sum(MU*sum(inter_arrival)) - sum(integrated_lambda_component)
+    sum_log_lambda - sum(MU*sum(inter_arrival)) - sum_integrated_lambda_component
 
   }
 )
