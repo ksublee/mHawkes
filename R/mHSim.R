@@ -14,25 +14,32 @@ setMethod(
     # dimension of Hawkes process
     dimens <- length(object@MU)
 
-    if( is.matrix(LAMBDA0) && nrow(LAMBDA0) != ncol(LAMBDA0))
-      stop("LAMBDA0 matrix should be n by n.")
+    if ( dimens >= 2 ){
 
-    if( is.matrix(LAMBDA0) && dimens != nrow(LAMBDA0))
-      stop("Check the dimension of LAMBDA0 matrix.")
+      if( is.matrix(LAMBDA0) && nrow(LAMBDA0) != ncol(LAMBDA0) )
+        stop("LAMBDA0 matrix should be n by n.")
+
+      if( is.matrix(LAMBDA0) && dimens != nrow(LAMBDA0) )
+        stop("Check the dimension of LAMBDA0 matrix.")
+
+    }
 
     # parameter setting
-    MU <- matrix(object@MU, nrow=dimens)
-    ALPHA <- matrix(object@ALPHA, nrow=dimens)
-    BETA <- matrix(object@BETA, nrow=dimens)
-    ETA <- matrix(object@ETA, nrow=dimens)
+    # MU <- matrix(object@MU, nrow=dimens)
+    # ALPHA <- matrix(object@ALPHA, nrow=dimens)
+    # BETA <- matrix(object@BETA, nrow=dimens)
+    # ETA <- matrix(object@ETA, nrow=dimens)
+
+    MU <- object@MU
+    ALPHA <- object@ALPHA
+    BETA <- object@BETA
+    ETA <- object@ETA
 
     # default LAMBDA0
     if(is.null(LAMBDA0)) {
 
       if (dimens == 1){
-        lamb0 <- (MU[1]*BETA[1]/(BETA[1]- ALPHA[1]) - MU[1])/2
-        LAMBDA0 <- matrix(rep(lamb0, dimens^2), nrow=dimens, byrow=TRUE)
-
+        LAMBDA0 <- (MU * BETA / (BETA - ALPHA) - MU) / 2
       } else if (dimens == 2) {
 
         #default LAMBDA0 with dimesion 2
@@ -102,8 +109,12 @@ setMethod(
       N[k+1, jumpType] <- N[k, jumpType] + mark[k+1]
 
       # update lambda
-      Impact <- matrix(rep(0, dimens^2), nrow = dimens)
-      Impact[ , jumpType] <- ALPHA[ , jumpType] * (1 + (mark[k+1] - 1) * ETA[ , jumpType])
+      if (dimens == 1) {
+        Impact <- ALPHA * (1 + (mark[k+1] - 1) * ETA )
+      } else {
+        Impact <- matrix(rep(0, dimens^2), nrow = dimens)
+        Impact[ , jumpType] <- ALPHA[ , jumpType] * (1 + (mark[k+1] - 1) * ETA[ , jumpType])
+      }
 
       new_LAMBDA <- current_LAMBDA * exp(-BETA * inter_arrival[k+1]) + Impact
 

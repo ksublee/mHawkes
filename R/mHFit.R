@@ -25,10 +25,11 @@ setMethod(
     }
 
     # parameter setting
-    MU <- matrix(object@MU, nrow=dimens)
-    ALPHA <- matrix(object@ALPHA, nrow=dimens)
-    BETA <- matrix(object@BETA, nrow=dimens)
-    ETA <- matrix(object@ETA, nrow=dimens)
+
+    MU <- object@MU
+    ALPHA <- object@ALPHA
+    BETA <- object@BETA
+    ETA <- object@ETA
 
     # default LAMBDA0
     if(is.null(LAMBDA0)) {
@@ -96,11 +97,172 @@ setMethod(
   }
 )
 
-
 setGeneric("mHFit", function(object, ...) standardGeneric("mHFit"))
 
 setMethod(
   f="mHFit",
+  signature(object="mHSpec"),
+  function(object, inter_arrival, jump_type=NULL, mark=NULL, LAMBDA0=NULL, model="symmetric", constraint=FALSE, method="BFGS"){
+
+    cat("starting optimization...\n")
+    # When the mark sizes are not provided, the jumps are all unit jumps.
+    unit <- FALSE
+    if(is.null(mark)) {
+      mark <- c(0, rep(1, length(inter_arrival)-1))
+      unit <- TRUE
+    }
+
+    # dimension of Hawkes process
+    dimens <- length(object@MU)
+
+    # parameter setting
+    MU <- matrix(object@MU, nrow=dimens)
+    ALPHA <- matrix(object@ALPHA, nrow=dimens)
+    BETA <- matrix(object@BETA, nrow=dimens)
+    ETA <- matrix(object@ETA, nrow=dimens)
+
+    # MU <- object@MU
+    # ALPHA <- object@ALPHA
+    # BETA <- object@BETA
+    # ETA <- object@ETA
+
+    # simple reference function to find unique value
+    find_ref <- function(M, notation){
+      reference <- character(length(M))
+
+      if (ncol(M) == 1){
+        k <- 1
+        for (i in 1:nrow(M)){
+          if (reference[k] == "")
+            reference[which(M == M[i])] <- paste0(notation, toString(i))
+          k <- k + 1
+        }
+      } else {
+        k <- 1
+        for  (i in 1:nrow(M)){
+          for (j in 1:ncol(M)) {
+            if (reference[k] == "")
+              reference[which( t(M) == M[i,j])] <- paste0(notation, toString(i), toString(j))
+            k <- k + 1
+          }
+        }
+      }
+      reference
+    }
+
+    ref_mu <- find_ref(MU, "mu")
+    unique_mus <- unique(as.vector(MU))
+    names(unique_mus) <- unique(ref_mu)
+
+    ref_alpha <- find_ref(ALPHA, "alpha")
+    unique_alphas <- unique(as.vector(t(ALPHA)))
+    names(unique_alphas) <-  unique(ref_alpha)
+
+
+    ref_beta <- find_ref(BETA, "beta")
+    unique_betas <- unique(as.vector(t(BETA)))
+    names(unique_betas) <-  unique(ref_beta)
+
+    # constant unit jump or not
+    if (unit) starting_point <- c(unique_mus, unique_alphas, unique_betas)
+    else {
+      ref_eta <- find_ref(ETA, "eta")
+      unique_etas <- unique(as.vector(t(ETA)))
+      names(unique_etas) <-  unique(ref_eta)
+      starting_point <- c(unique_mus, unique_alphas, unique_betas, unique_etas)
+    }
+
+    len_mu <- length(unique_mus)
+    len_alpha <- length(unique_alphas)
+    len_beta <- length(unique_betas)
+    len_eta <- length(unique_etas)
+
+    # constraint matrix
+    # mu, alpha, beta should be larger than zero
+    if (unit) A <- diag(1, nrow = length(starting_point) - length(unique_etas))
+    else A <- cbind(diag(1, nrow = length(starting_point) - length(unique_etas)), rep(0, length(starting_point) - length(unique_etas)))
+    # constraint : sum of alpha < beta
+    A <- rbind(A, c(0, rep(-1, length(unique_alphas)), 1, rep(0, length(unique_etas))))
+
+    B <- rep(0, nrow(A))
+
+    # loglikelihood function for maxLik
+    llh_maxLik <- function(param){
+
+      cat("#")
+      # redefine unique vectors from param
+      unique_mus <- param[1:len_mu]
+      unique_alphas <- param[(len_mu + 1):(len_mu + len_alpha)]
+      unique_betas <- param[(len_mu + len_alpha + 1):(len_mu + len_alpha + len_beta)]
+      unique_etas <- param[(len_mu + len_alpha + len_beta + 1):(len_mu + len_alpha + len_beta + len_eta)]
+
+      # retreive MU, ALPHA, BETA, ETA matrix
+      MU <- matrix( rep(0, dimens))
+      k <- 1
+      for  (i in 1:dimens){
+        MU[i] <- unique_mus[ref_mu[k]]
+        k <- k + 1
+      }
+
+      ALPHA <- matrix( rep(0, dimens^2), nrow=dimens)
+      k <- 1
+      for  (i in 1:dimens){
+        for (j in 1:dimens) {
+          ALPHA[i,j] <- unique_alphas[ref_alpha[k]]
+          k <- k + 1
+        }
+      }
+
+      BETA <- matrix( rep(0, dimens^2), nrow=dimens)
+      k <- 1
+      for  (i in 1:dimens){
+        for (j in 1:dimens) {
+          BETA[i,j] <- unique_betas[ref_beta[k]]
+          k <- k + 1
+        }
+      }
+
+      if (unit) ETA <- matrix(rep(0, dimens^2), nrow=dimens)
+      else{
+        ETA <- matrix( rep(0, dimens^2), nrow=dimens)
+        k <- 1
+        for  (i in 1:dimens){
+          for (j in 1:dimens) {
+            ETA[i,j] <- unique_etas[ref_eta[k]]
+            k <- k + 1
+          }
+        }
+      }
+
+      mHSpec0 <- new("mHSpec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, Jump=object@Jump)
+
+
+      llh <- logLik(mHSpec0, inter_arrival = inter_arrival, jump_type = jump_type, mark = mark, LAMBDA0)
+      return(llh)
+
+    }
+
+    if (constraint)
+      mle<-maxLik::maxLik(logLik=llh_maxLik,
+                          start=starting_point, constraint=list(ineqA=A, ineqB=B),
+                          method=method)
+    else
+      mle<-maxLik::maxLik(logLik=llh_maxLik,
+                          start=starting_point,
+                          method=method)
+
+    cat("\n")
+    cat("ending procedure.")
+    mle
+
+  }
+)
+
+
+setGeneric("mHFit_old", function(object, ...) standardGeneric("mHFit_old"))
+
+setMethod(
+  f="mHFit_old",
   signature(object="mHSpec"),
   function(object, inter_arrival, jump_type=NULL, mark=NULL, LAMBDA0=NULL, model="symmetric", constraint=TRUE, method="BFGS"){
 
@@ -119,8 +281,6 @@ setMethod(
     ALPHA <- matrix(object@ALPHA, nrow=dimens)
     BETA <- matrix(object@BETA, nrow=dimens)
     ETA <- matrix(object@ETA, nrow=dimens)
-
-
 
 
     # symmetric for alpha and the same beta
@@ -187,6 +347,7 @@ setMethod(
       if (unit) ETA <- matrix(rep(0, dimens^2), nrow=dimens)
       else ETA <- matrix(rep(param[[1 + length(alphas) + 1 + 1]], dimens^2), nrow=dimens)
 
+      # starting point
       mHSpec0 <- new("mHSpec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, Jump=object@Jump)
 
 
@@ -207,155 +368,3 @@ setMethod(
   }
 )
 
-
-setGeneric("mHFit2", function(object, ...) standardGeneric("mHFit2"))
-
-setMethod(
-  f="mHFit2",
-  signature(object="mHSpec"),
-  function(object, inter_arrival, jump_type=NULL, mark=NULL, LAMBDA0=NULL, model="symmetric", constraint=FALSE, method="BFGS"){
-
-    # When the mark sizes are not provided, the jumps are all unit jumps.
-    unit <- FALSE
-    if(is.null(mark)) {
-      mark <- c(0, rep(1, length(inter_arrival)-1))
-      unit <- TRUE
-    }
-
-    # dimension of Hawkes process
-    dimens <- length(object@MU)
-
-    # parameter setting
-    MU <- matrix(object@MU, nrow=dimens)
-    ALPHA <- matrix(object@ALPHA, nrow=dimens)
-    BETA <- matrix(object@BETA, nrow=dimens)
-    ETA <- matrix(object@ETA, nrow=dimens)
-
-    # simple reference function to find unique value
-    find_ref <- function(M, notation){
-      reference <- character(length(M))
-
-      if (ncol(M) == 1){
-        k <- 1
-        for (i in 1:nrow(M)){
-          if (reference[k] == "")
-            reference[which(M == M[i])] <- paste0(notation, toString(i))
-          k <- k + 1
-        }
-      } else {
-        k <- 1
-        for  (i in 1:nrow(M)){
-          for (j in 1:ncol(M)) {
-            if (reference[k] == "")
-              reference[which( t(M) == M[i,j])] <- paste0(notation, toString(i), toString(j))
-            k <- k + 1
-          }
-        }
-      }
-      reference
-    }
-
-    ref_mu <- find_ref(MU, "mu")
-    unique_mus <- unique(as.vector(MU))
-    names(unique_mus) <- unique(ref_mu)
-
-    ref_alpha <- find_ref(ALPHA, "alpha")
-    unique_alphas <- unique(as.vector(t(ALPHA)))
-    names(unique_alphas) <-  unique(ref_alpha)
-
-
-    ref_beta <- find_ref(BETA, "beta")
-    unique_betas <- unique(as.vector(t(BETA)))
-    names(unique_betas) <-  unique(ref_beta)
-
-    # constant unit jump or not
-    if (unit) starting_point <- c(unique_mus, unique_alphas, unique_betas)
-    else {
-      ref_eta <- find_ref(ETA, "eta")
-      unique_etas <- unique(as.vector(t(ETA)))
-      names(unique_etas) <-  unique(ref_eta)
-      starting_point <- c(unique_mus, unique_alphas, unique_betas, unique_etas)
-    }
-
-    len_mu <- length(unique_mus)
-    len_alpha <- length(unique_alphas)
-    len_beta <- length(unique_betas)
-    len_eta <- length(unique_etas)
-
-    # constraint matrix
-    # mu, alpha, beta should be larger than zero
-    if (unit) A <- diag(1, nrow = length(starting_point) - length(unique_etas))
-    else A <- cbind(diag(1, nrow = length(starting_point) - length(unique_etas)), rep(0, length(starting_point) - length(unique_etas)))
-    # constraint : sum of alpha < beta
-    A <- rbind(A, c(0, rep(-1, length(unique_alphas)), 1, rep(0, length(unique_etas))))
-
-    B <- rep(0, nrow(A))
-
-    print(A)
-
-    # loglikelihood function for maxLik
-    llh_maxLik <- function(param){
-
-      # redefine unique vectors from param
-      unique_mus <- param[1:len_mu]
-      unique_alphas <- param[(len_mu + 1):(len_mu + len_alpha)]
-      unique_betas <- param[(len_mu + len_alpha + 1):(len_mu + len_alpha + len_beta)]
-      unique_etas <- param[(len_mu + len_alpha + len_beta + 1):(len_mu + len_alpha + len_beta + len_eta)]
-
-      # retreive MU, ALPHA, BETA, ETA matrix
-      MU <- matrix( rep(0, dimens))
-      k <- 1
-      for  (i in 1:dimens){
-        MU[i] <- unique_mus[ref_mu[k]]
-        k <- k + 1
-      }
-
-      ALPHA <- matrix( rep(0, dimens^2), nrow=dimens)
-      k <- 1
-      for  (i in 1:dimens){
-        for (j in 1:dimens) {
-          ALPHA[i,j] <- unique_alphas[ref_alpha[k]]
-          k <- k + 1
-        }
-      }
-
-      BETA <- matrix( rep(0, dimens^2), nrow=dimens)
-      k <- 1
-      for  (i in 1:dimens){
-        for (j in 1:dimens) {
-          BETA[i,j] <- unique_betas[ref_beta[k]]
-          k <- k + 1
-        }
-      }
-
-      if (unit) ETA <- matrix(rep(0, dimens^2), nrow=dimens)
-      else{
-        ETA <- matrix( rep(0, dimens^2), nrow=dimens)
-        k <- 1
-        for  (i in 1:dimens){
-          for (j in 1:dimens) {
-            ETA[i,j] <- unique_etas[ref_eta[k]]
-            k <- k + 1
-          }
-        }
-      }
-
-      mHSpec0 <- new("mHSpec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, Jump=object@Jump)
-
-
-      llh <- logLik(mHSpec0, inter_arrival = inter_arrival, jump_type = jump_type, mark = mark, LAMBDA0)
-      return(llh)
-
-    }
-
-    if (constraint)
-      mle<-maxLik::maxLik(logLik=llh_maxLik,
-                          start=starting_point, constraint=list(ineqA=A, ineqB=B),
-                          method=method)
-    else
-      mle<-maxLik::maxLik(logLik=llh_maxLik,
-                          start=starting_point,
-                          method=method)
-
-  }
-)
