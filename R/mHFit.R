@@ -252,7 +252,7 @@ setMethod(
                           method=method)
 
     cat("\n")
-    cat("ending procedure.")
+    cat("ending procedure.\n")
     mle
 
   }
