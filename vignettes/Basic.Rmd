@@ -23,46 +23,69 @@ Install ```mHawkes``` from github.
 devtools::install_github("ksublee/mHawkes", build_vignettes=TRUE)
 ```
 
+Load ```mHawkes```.
 
 ```{r}
 library("mHawkes")
 ```
 
 
-First, create a mHSpec which define the Hawkes process.
+First, create a mHSpec which define the Hawkes model.
 
 ```{r}
-MU1 <- 0.2
-ALPHA1 <- 1.7
-BETA1 <- 2.0
+MU2 <- matrix(c(0.2), nrow = 2)
+ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
+BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow=TRUE)
+ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
+JUMP2 <- function(n,...) rgeom(n, 0.65) + 1
 
-mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
 ```
+
+```{r}
+mHSpec2
+```
+
 
 To simulate, use function ```mHSim```.
 
 ```{r}
-L0 <- MU1  # naive way of setting an initial value for intensity lambda.
-res1 <- mHSim(mHSpec1, LAMBDA0=L0, n=1000)
+res2 <- mHSim(mHSpec2,  n=1000)
 ```
+
+Plot N.
+
+```{r}
+plot(res2$arrival[1:20], res2$N[1:20,1], 's')
+```
+
+Plot lambda.
+
+```{r}
+plotlambda(res2$arrival[1:100], res2$lambda[1:100,1], BETA2[1,1])
+```
+
 
 Frome the result, we get a vector of realized inter arrival times.
-
 ```{r}
-inter_arrival <- res1$inter_arrival
+inter_arrival2 <- res2$inter_arrival
+mark2 <- res2$mark
+jump_type2 <- res2$jump_type
 ```
 
 
-Log-likelihood is computed by a function ```loglikelihood```.
-
+Log-likelihood is computed by a function ```logLik```.
 ```{r}
-loglikelihood(mHSpec1, inter_arrival = inter_arrival, LAMBDA0 = L0)
+logLik(mHSpec2,  inter_arrival = inter_arrival2, jump_type = jump_type2, mark = mark2)
 ```
 
 A log-likelihood estimation is performed using ```mHFit```.
-```mSpec1``` is regarded as a starting point of the numerical optimization.
+```mSpec2``` is regarded as a starting point of the numerical optimization.
 
-```{r}
-mle <- mHFit(mHSpec1, inter_arrival = inter_arrival,  LAMBDA0 = L0)
-print(summary(mle))
+```{r, warning=FALSE, error=FALSE}
+mle <- mHFit(mHSpec2, inter_arrival = inter_arrival2, jump_type = jump_type2, mark = mark2, constraint=FALSE)
 ```
+```{r}
+summary(mle)
+```
+
