@@ -75,11 +75,11 @@ setMethod(
     inter_arrival <- numeric(length = n)
     mark <- numeric(length = n)
 
-    names(lambda_process) <- paste0("lambda", 1:dimens)
-    indxM <- matrix(rep(1:dimens, dimens), byrow = TRUE, nrow = dimens)
-    names(lambda_component) <- paste0("lambda", indxM, t(indxM))
-    names(N)  <- paste0("N", 1:dimens)
-    names(Ng) <- paste0("Ng", 1:dimens)
+    #names(lambda_process) <- paste0("lambda", 1:dimens)
+    #indxM <- matrix(rep(1:dimens, dimens), byrow = TRUE, nrow = dimens)
+    #names(lambda_component) <- paste0("lambda", indxM, t(indxM))
+    #names(N)  <- paste0("N", 1:dimens)
+    #names(Ng) <- paste0("Ng", 1:dimens)
 
     # Exact method
     for (k in 1:(n-1)) {

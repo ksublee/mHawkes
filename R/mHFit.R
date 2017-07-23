@@ -175,26 +175,35 @@ setMethod(
     len_mu <- length(unique_mus)
     len_alpha <- length(unique_alphas)
     len_beta <- length(unique_betas)
-    len_eta <- length(unique_etas)
+
+    if (!unit) len_eta <- length(unique_etas)
+    else len_eta <- 0
+
 
     # constraint matrix
     # mu, alpha, beta should be larger than zero
-    if (unit) A <- diag(1, nrow = length(starting_point) - length(unique_etas))
+    if (unit) A <- diag(1, nrow = length(starting_point) - len_eta)
     else A <- cbind(diag(1, nrow = length(starting_point) - length(unique_etas)), rep(0, length(starting_point) - length(unique_etas)))
-    # constraint : sum of alpha < beta
-    A <- rbind(A, c(0, rep(-1, length(unique_alphas)), 1, rep(0, length(unique_etas))))
 
+
+
+    # constraint : sum of alpha < beta
+    A <- rbind(A, c(0, rep(-1, len_alpha), 1, rep(0, len_eta)))
     B <- rep(0, nrow(A))
+
+
 
     # loglikelihood function for maxLik
     llh_maxLik <- function(param){
+
+
 
       cat("#")
       # redefine unique vectors from param
       unique_mus <- param[1:len_mu]
       unique_alphas <- param[(len_mu + 1):(len_mu + len_alpha)]
       unique_betas <- param[(len_mu + len_alpha + 1):(len_mu + len_alpha + len_beta)]
-      unique_etas <- param[(len_mu + len_alpha + len_beta + 1):(len_mu + len_alpha + len_beta + len_eta)]
+      if (!unit) unique_etas <- param[(len_mu + len_alpha + len_beta + 1):(len_mu + len_alpha + len_beta + len_eta)]
 
       # retreive MU, ALPHA, BETA, ETA matrix
       MU <- matrix( rep(0, dimens))
@@ -259,112 +268,112 @@ setMethod(
 )
 
 
-setGeneric("mHFit_old", function(object, ...) standardGeneric("mHFit_old"))
-
-setMethod(
-  f="mHFit_old",
-  signature(object="mHSpec"),
-  function(object, inter_arrival, jump_type=NULL, mark=NULL, LAMBDA0=NULL, model="symmetric", constraint=TRUE, method="BFGS"){
-
-    # When the mark sizes are not provided, the jumps are all unit jumps.
-    unit <- FALSE
-    if(is.null(mark)) {
-      mark <- c(0, rep(1, length(inter_arrival)-1))
-      unit <- TRUE
-    }
-
-    # dimension of Hawkes process
-    dimens <- length(object@MU)
-
-    # parameter setting
-    MU <- matrix(object@MU, nrow=dimens)
-    ALPHA <- matrix(object@ALPHA, nrow=dimens)
-    BETA <- matrix(object@BETA, nrow=dimens)
-    ETA <- matrix(object@ETA, nrow=dimens)
-
-
-    # symmetric for alpha and the same beta
-    mu <- MU[1]
-
-    # alphas = [alpha11, alpha12, alpha13, ..., alpha1n, alpha23, ..., alpha2n, alpha34, ..., alpha3n , ...]
-    alphas <- numeric(length = dimens*(dimens-1)/2 + 1)
-    alphas[1] <- ALPHA[1,1]
-    alpha_names <- "alpha11"
-    k <- 2
-    for (i in 1:dimens) {
-      j <- i + 1
-      while (j <=  dimens) {
-        alphas[k] <- ALPHA[i, j]
-        alpha_names <- c(alpha_names, paste0("alpha",i,j))
-        j <- j + 1
-        k <- k + 1
-      }
-    }
-
-    names(alphas) <- alpha_names
-
-    beta <- BETA[1]
-    eta <- numeric()
-
-    # constant unit jump or not
-    if (unit) starting_point <- c(mu = mu, alphas, beta = beta)
-    else {
-      eta <- object@ETA[1]
-      starting_point <- c(mu = mu, alphas, beta = beta, eta = eta)
-    }
-
-    # constraint matrix
-    # mu, alpha, beta should be larger than zero
-    if (unit) A <- diag(1, nrow = length(starting_point) - length(eta))
-    else A <- cbind(diag(1, nrow = length(starting_point) - length(eta)), rep(0, length(starting_point) - length(eta)))
-    # constraint : sum of alpha < beta
-    A <- rbind(A, c(0, rep(-1, length(alphas)), 1, rep(0, length(eta))))
-
-    B <- rep(0, nrow(A))
-
-    # loglikelihood function for maxLik
-    llh_maxLik <- function(param){
-
-      MU <- matrix(rep(param[[1]], dimens), nrow=dimens)
-      # diagonal part of ALPHA
-      ALPHA <- diag(param[[2]], nrow=dimens)
-      # upper tri part of ALPHA
-      k <- 3
-      for (i in 1:dimens) {
-        j <- i + 1
-        while (j <=  dimens) {
-          ALPHA[i, j] <- param[k]
-          j <- j + 1
-          k <- k + 1
-        }
-      }
-      # symmetric ALPHA
-      ALPHA[lower.tri(ALPHA)] = t(ALPHA)[lower.tri(ALPHA)]
-
-      # ALPHA <- matrix(c(param[[2]], param[[3]], param[[3]], param[[2]]), nrow=2, byrow=TRUE)
-      BETA <- matrix(rep(param[[1 + length(alphas) + 1]], dimens^2), nrow=dimens, byrow=TRUE)
-
-      if (unit) ETA <- matrix(rep(0, dimens^2), nrow=dimens)
-      else ETA <- matrix(rep(param[[1 + length(alphas) + 1 + 1]], dimens^2), nrow=dimens)
-
-      # starting point
-      mHSpec0 <- new("mHSpec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, Jump=object@Jump)
-
-
-      llh <- logLik(mHSpec0, inter_arrival = inter_arrival, jump_type = jump_type, mark = mark, LAMBDA0)
-      return(llh)
-
-    }
-
-    if (constraint)
-      mle<-maxLik::maxLik(logLik=llh_maxLik,
-                          start=starting_point, constraint=list(ineqA=A, ineqB=B),
-                          method=method)
-    else
-      mle<-maxLik::maxLik(logLik=llh_maxLik,
-                          start=starting_point,
-                          method=method)
-
-  }
-)
-
+# setGeneric("mHFit_old", function(object, ...) standardGeneric("mHFit_old"))
+#
+# setMethod(
+#   f="mHFit_old",
+#   signature(object="mHSpec"),
+#   function(object, inter_arrival, jump_type=NULL, mark=NULL, LAMBDA0=NULL, model="symmetric", constraint=TRUE, method="BFGS"){
+#
+#     # When the mark sizes are not provided, the jumps are all unit jumps.
+#     unit <- FALSE
+#     if(is.null(mark)) {
+#       mark <- c(0, rep(1, length(inter_arrival)-1))
+#       unit <- TRUE
+#     }
+#
+#     # dimension of Hawkes process
+#     dimens <- length(object@MU)
+#
+#     # parameter setting
+#     MU <- matrix(object@MU, nrow=dimens)
+#     ALPHA <- matrix(object@ALPHA, nrow=dimens)
+#     BETA <- matrix(object@BETA, nrow=dimens)
+#     ETA <- matrix(object@ETA, nrow=dimens)
+#
+#
+#     # symmetric for alpha and the same beta
+#     mu <- MU[1]
+#
+#     # alphas = [alpha11, alpha12, alpha13, ..., alpha1n, alpha23, ..., alpha2n, alpha34, ..., alpha3n , ...]
+#     alphas <- numeric(length = dimens*(dimens-1)/2 + 1)
+#     alphas[1] <- ALPHA[1,1]
+#     alpha_names <- "alpha11"
+#     k <- 2
+#     for (i in 1:dimens) {
+#       j <- i + 1
+#       while (j <=  dimens) {
+#         alphas[k] <- ALPHA[i, j]
+#         alpha_names <- c(alpha_names, paste0("alpha",i,j))
+#         j <- j + 1
+#         k <- k + 1
+#       }
+#     }
+#
+#     names(alphas) <- alpha_names
+#
+#     beta <- BETA[1]
+#     eta <- numeric()
+#
+#     # constant unit jump or not
+#     if (unit) starting_point <- c(mu = mu, alphas, beta = beta)
+#     else {
+#       eta <- object@ETA[1]
+#       starting_point <- c(mu = mu, alphas, beta = beta, eta = eta)
+#     }
+#
+#     # constraint matrix
+#     # mu, alpha, beta should be larger than zero
+#     if (unit) A <- diag(1, nrow = length(starting_point) - length(eta))
+#     else A <- cbind(diag(1, nrow = length(starting_point) - length(eta)), rep(0, length(starting_point) - length(eta)))
+#     # constraint : sum of alpha < beta
+#     A <- rbind(A, c(0, rep(-1, length(alphas)), 1, rep(0, length(eta))))
+#
+#     B <- rep(0, nrow(A))
+#
+#     # loglikelihood function for maxLik
+#     llh_maxLik <- function(param){
+#
+#       MU <- matrix(rep(param[[1]], dimens), nrow=dimens)
+#       # diagonal part of ALPHA
+#       ALPHA <- diag(param[[2]], nrow=dimens)
+#       # upper tri part of ALPHA
+#       k <- 3
+#       for (i in 1:dimens) {
+#         j <- i + 1
+#         while (j <=  dimens) {
+#           ALPHA[i, j] <- param[k]
+#           j <- j + 1
+#           k <- k + 1
+#         }
+#       }
+#       # symmetric ALPHA
+#       ALPHA[lower.tri(ALPHA)] = t(ALPHA)[lower.tri(ALPHA)]
+#
+#       # ALPHA <- matrix(c(param[[2]], param[[3]], param[[3]], param[[2]]), nrow=2, byrow=TRUE)
+#       BETA <- matrix(rep(param[[1 + length(alphas) + 1]], dimens^2), nrow=dimens, byrow=TRUE)
+#
+#       if (unit) ETA <- matrix(rep(0, dimens^2), nrow=dimens)
+#       else ETA <- matrix(rep(param[[1 + length(alphas) + 1 + 1]], dimens^2), nrow=dimens)
+#
+#       # starting point
+#       mHSpec0 <- new("mHSpec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, Jump=object@Jump)
+#
+#
+#       llh <- logLik(mHSpec0, inter_arrival = inter_arrival, jump_type = jump_type, mark = mark, LAMBDA0)
+#       return(llh)
+#
+#     }
+#
+#     if (constraint)
+#       mle<-maxLik::maxLik(logLik=llh_maxLik,
+#                           start=starting_point, constraint=list(ineqA=A, ineqB=B),
+#                           method=method)
+#     else
+#       mle<-maxLik::maxLik(logLik=llh_maxLik,
+#                           start=starting_point,
+#                           method=method)
+#
+#   }
+# )
+#

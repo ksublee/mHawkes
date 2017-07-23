@@ -11,13 +11,13 @@ vignette: >
 
 ### one dimensional Hawkes process
 
-To install ```mHawkes```, first install ```devtools```.
+To install ```mHawkes``` package, first install ```devtools```.
 
 ```{r, eval=FALSE}
 install.packages("devtools")  #if devtools is not installed
 ```
 
-Install ```mHawkes``` from github.
+Install ```mHawkes``` package from github.
 
 ```{r, eval=FALSE}
 devtools::install_github("ksublee/mHawkes", build_vignettes=TRUE)
@@ -25,12 +25,45 @@ devtools::install_github("ksublee/mHawkes", build_vignettes=TRUE)
 
 Load ```mHawkes```.
 
-```{r}
+```{r,  eval=FALSE}
 library("mHawkes")
 ```
 
 
 First, create a mHSpec which define the Hawkes model.
+Basically the model can be defined up to 9 dimensional 
+but currently fully supported for one and two diemsional model especillay for estimation.
+The parameter of the model is defined by a matrix but numeric vectors are also supported for one dimesional model.
+
+The following is an example of one dimensional Hawkes model.
+Parameter inputs can be a numeric vector or 1 by 1 matrix.
+In the following case Jump and eta slots, which deteremine the mark, are default values.
+
+```{r}
+MU1 <- 0.3
+ALPHA1 <- 1.5
+BETA1 <- 2
+mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+show(mHSpec1)
+```
+
+Mark structure can be added with Jump slot.
+In addition, linear impact parameter eta can be added.
+
+```{r}
+ETA1 <- 0.15
+JUMP1 <- function(n,...) rgeom(n, 0.65) + 1
+
+mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1, Jump =JUMP1)
+```
+
+To simulate, use function ```mHSim```.
+
+```{r}
+res1 <- mHSim(mHSpec1,  n=1000)
+```
+
+
 
 ```{r}
 MU2 <- matrix(c(0.2), nrow = 2)
@@ -50,21 +83,27 @@ mHSpec2
 To simulate, use function ```mHSim```.
 
 ```{r}
-res2 <- mHSim(mHSpec2,  n=1000)
+res2 <- mHSim(mHSpec2,  n=10)
 ```
 
 Plot N.
 
 ```{r}
-plot(res2$arrival[1:20], res2$N[1:20,1], 's')
+plot(res2$arrival[1:10], res2$N[1:10,1], 's')
 ```
 
 Plot lambda.
 
 ```{r}
-plotlambda(res2$arrival[1:100], res2$lambda[1:100,1], BETA2[1,1])
+plotlambda(res2$arrival[1:10], res2$lambda[1:10,1], BETA2[1,1])
 ```
-
+Frome the result, we get a vector of realized inter arrival times.
+```{r}
+inter_arrival1 <- res1$inter_arrival
+```
+```{r, warning='hide', error='hide', message='hide', results='hide'}
+mle <- mHFit(mHSpec1, inter_arrival = inter_arrival1)
+```
 
 Frome the result, we get a vector of realized inter arrival times.
 ```{r}

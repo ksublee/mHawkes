@@ -99,7 +99,7 @@ setClass(
 setMethod(
   "initialize",
   "mHSpec",
-  function(.Object, MU, ALPHA, BETA, ETA=NULL, Jump=NULL){
+  function(.Object, MU, ALPHA, BETA, ETA=NULL, Jump=NULL, stability_check=FALSE){
 
     # If Jump is not provided, then Jump is constant 1.
     if (is.null(Jump)) Jump <- function(n,...) rep(1,n)
@@ -122,7 +122,7 @@ setMethod(
     .Object@Jump <- Jump
 
     # Check spectral radius
-    if ( max(abs(eigen(ALPHA/BETA)$values)) >= 1)
+    if ( stability_check==TRUE && max(abs(eigen(ALPHA/BETA)$values)) >= 1)
       warning("This model does not satisfy the stability condition.")
 
     callNextMethod()
