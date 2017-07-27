@@ -2,14 +2,15 @@
 title: "Basic example"
 author: "Kyungsub Lee"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Basic example}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-### one dimensional Hawkes process
+### Install pacakge
 
 To install ```mHawkes``` package, first install ```devtools```.
 
@@ -20,15 +21,16 @@ install.packages("devtools")  #if devtools is not installed
 Install ```mHawkes``` package from github.
 
 ```{r, eval=FALSE}
-devtools::install_github("ksublee/mHawkes", build_vignettes=TRUE)
+devtools::install_github("ksublee/mHawkes", build_vignettes=FALSE)
 ```
 
 Load ```mHawkes```.
 
-```{r,  eval=FALSE}
+```{r}
 library("mHawkes")
 ```
 
+### one dimensional Hawkes process
 
 First, create a mHSpec which define the Hawkes model.
 Basically the model can be defined up to 9 dimensional 
@@ -47,8 +49,52 @@ mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
 show(mHSpec1)
 ```
 
+To simulate, use function ```mHSim```.
+
+```{r}
+res1 <- mHSim(mHSpec1,  n=10)
+```
+
+
+The output ```res1``` is a list of ```inter_arrival```, ```arrival```, ```jump_type```, ```mark```,```N```, ```Ng```, ```lambda```, and ```lambda_component```.
+```inter_arrival```, ```arrival```, ```jump_type```, and ```mark``` are numeric vectors
+and ```N```, ```Ng```, ```lambda```, and ```lambda_component``` are matrices.
+
+```{r}
+res1
+```
+
+Note that the ```inter_arrival``` and ```arrival``` start at zero.
+Thus, ```inter_arrival[2]``` and ```arrival[2]``` are first arrival time.
+
+
+Plot the realized processes.
+```{r}
+plot(res1$arrival, res1$N[,'N1'], 's', xlab="t", ylab="N")
+```
+Intensity process can be plotted by ```plotlambda``` function.
+
+```{r}
+plotlambda(res1$arrival, res1$N[,'N1'], BETA1)
+```
+
+```{r}
+inter_arrival1 <- res1$inter_arrival
+logLik(mHSpec1, inter_arrival = inter_arrival1)
+```
+
+
+
+```{r, warning=FALSE}
+mle <- mHFit(mHSpec1, inter_arrival = inter_arrival1)
+summary(mle)
+```
+
+
+### one dimensional Hawkes process with jump
+
 Mark structure can be added with Jump slot.
-In addition, linear impact parameter eta can be added.
+In addition, linear impact parameter ```ETA``` can be added.
 
 ```{r}
 ETA1 <- 0.15
@@ -56,14 +102,19 @@ JUMP1 <- function(n,...) rgeom(n, 0.65) + 1
 
 mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1, Jump =JUMP1)
 ```
-
-To simulate, use function ```mHSim```.
-
 ```{r}
-res1 <- mHSim(mHSpec1,  n=1000)
+res1 <- mHSim(mHSpec1,  n=10)
 ```
 
 
+Plot the realized processes.
+
+```{r}
+plot(res1$arrival, res1$N[,'N1'], 's', xlab="t", ylab="N")
+```
+
+
+### Two-dimensional Hawkes model
 
 ```{r}
 MU2 <- matrix(c(0.2), nrow = 2)
@@ -79,7 +130,6 @@ mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2
 mHSpec2
 ```
 
-
 To simulate, use function ```mHSim```.
 
 ```{r}
@@ -92,16 +142,22 @@ Plot N.
 plot(res2$arrival[1:10], res2$N[1:10,1], 's')
 ```
 
+```{r}
+plot(res2)
+```
+
+
 Plot lambda.
 
 ```{r}
 plotlambda(res2$arrival[1:10], res2$lambda[1:10,1], BETA2[1,1])
 ```
+
 Frome the result, we get a vector of realized inter arrival times.
 ```{r}
 inter_arrival1 <- res1$inter_arrival
 ```
-```{r, warning='hide', error='hide', message='hide', results='hide'}
+```{r, warning=FALSE}
 mle <- mHFit(mHSpec1, inter_arrival = inter_arrival1)
 ```
 

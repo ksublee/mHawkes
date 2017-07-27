@@ -25,10 +25,6 @@ setMethod(
     }
 
     # parameter setting
-    # MU <- matrix(object@MU, nrow=dimens)
-    # ALPHA <- matrix(object@ALPHA, nrow=dimens)
-    # BETA <- matrix(object@BETA, nrow=dimens)
-    # ETA <- matrix(object@ETA, nrow=dimens)
 
     MU <- object@MU
     ALPHA <- object@ALPHA
@@ -138,8 +134,9 @@ setMethod(
     colnames(N)  <- paste0("N", 1:dimens)
     colnames(Ng) <- paste0("Ng", 1:dimens)
 
-    realization <- list(inter_arrival, cumsum(inter_arrival), jump_type, mark, N, Ng, lambda_process, lambda_component)
-    names(realization) <- c("inter_arrival", "arrival", "jump_type", "mark", "N", "Ng", "lambda", "lambda_component")
+    realization <- list(object, inter_arrival, cumsum(inter_arrival), jump_type, mark, N, Ng, lambda_process, lambda_component)
+    names(realization) <- c("mHSpec", "inter_arrival", "arrival", "jump_type", "mark", "N", "Ng", "lambda", "lambda_component")
+    class(realization) <- c("mHreal")
 
     return(realization)
   }
