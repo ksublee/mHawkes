@@ -1,14 +1,6 @@
 print.mHreal <- function(res, n=10){
   cat(".........\n")
   print.default(res)
-  # for (i in 1:length(res)){
-  #
-  #   if(is.vector(res[i])){
-  #     print(res[[i]][1:n])
-  #   } else{
-  #     print(res[i])
-  #   }
-  # }
 }
 
 
@@ -31,7 +23,7 @@ as.data.frame.mHreal <- function(res){
 summary.mHreal <- function(res){
 
   cat("----------------------------------------\n")
-  cat("Simulation result of marked Hawkes model\n")
+  cat("Simulation result of marked Hawkes model.\n")
   cat("realized path:\n")
   mtrx <- as.matrix(res)
   dimens <- length(res$mHSpec@MU)

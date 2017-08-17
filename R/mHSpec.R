@@ -3,7 +3,6 @@ setClassUnion("matrixORnumeric", c("matrix", "numeric"))
 
 validmHSpec <- function(object) {
 
-
   if(!is.matrix(object@MU) | !is.matrix(object@ALPHA) | !is.matrix(object@BETA) | (!is.null(object@ETA) & !is.matrix(object@ETA))){
 
     # If one of the parameter is not matrix, then all parameters should not be matrix.
@@ -75,14 +74,25 @@ validmHSpec <- function(object) {
 }
 
 
-#' An S4 calss to represent the specification of a marked Hawkes model with exponential kernel.
+#' An S4 class to represent a marked Hawkes model
 #'
+#' This class represents a specification of a marked Hawkes model with exponential kernel.
+#' The intensity of the ground process is defined by:
+#' \deqn{\lambda(t) = \mu + \int \alpha / \beta (1 + (k - 1) \eta) exp( -\beta (t-u)) d N(t)}
 #'
-#' @slot MU
-#' @slot ALPHA
-#' @slot BETA
-#' @slot ETA
-#' @slot Jump
+#' @slot MU numeric value or matrix. Shoud be a matrix for two or larger dimensional model.
+#' @slot ALPHA numeric value or matrix. Shoud be a matrix for two or larger dimensional model.
+#' @slot BETA numeric value or matrix. Shoud be a matrix for two or larger dimensional model.
+#' @slot ETA numeric value or matrix. Shoud be a matrix for two or larger dimensional model.
+#' @slot Jump a function that generate a random number with specific distribution.
+#'
+#' @examples
+#' MU2 <- matrix(c(0.2), nrow = 2)
+#' ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
+#' BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow=TRUE)
+#' ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
+#' JUMP2 <- function(n,...) rgeom(n, 0.65) + 1
+#' mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
 setClass(
   "mHSpec",
   slots = list(
@@ -139,9 +149,9 @@ setMethod(
   "show",
   "mHSpec",
   function(object){
-    cat("Marked Hawkes model with linear impact function\n")
+    cat("Marked Hawkes model with linear impact function.\n")
     cat("The intensity process is defined by\n\n")
-    cat("LAMBDA(t) = MU + int ALPHA/BETA (1+(k-1)*ETA) exp(-BETA(t-u)) d N(t)\n" )
+    cat("LAMBDA(t) = MU + int ALPHA %/% BETA (1+(k-1)ETA) %*% exp(-BETA(t-u)) d N(t)\n" )
     cat("\n")
     cat("The parameters are : \n\n")
     callNextMethod(object)

@@ -2,10 +2,37 @@
 
 setGeneric("mHSim", function(object, ...) standardGeneric("mHSim"))
 
-#' Simulate a marked Hawkes process
+#' Simulate an n-dimensional marked Hawkes process
 #'
-#' @param LAMBDA0
-#' @param n
+#' This is a generic function.
+#' The mark (jump) structure may or may not be included.
+#' It returns an object of class 'mHreal'.
+#'
+#' @param object mHSpec
+#' @param LAMBDA0 The starting values of lambda. Must have the same dimensional matrix (n by n) with mHSpec.
+#' @param n The number of observations.
+#'
+#' @examples
+#' # example for one dimensional Hawkes process (without mark)
+#' # Define the model.
+#' MU1 <- 0.3; ALPHA1 <- 1.5; BETA1 <- 2
+#' mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+#' # Simulate with mHSim funciton.
+#' res1 <- mHSim(mHSpec1,  n=100)
+#' summary(res1)
+#'
+#' # example for two dimensional Hawkes process
+#' # Define the model.
+#' MU2 <- matrix(c(0.2), nrow = 2)
+#' ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
+#' BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow=TRUE)
+#' ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
+#' JUMP2 <- function(n,...) rgeom(n, 0.65) + 1   # mark size follows a geometric distribution
+#' mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+#' # Simulate with mHSim function.
+#' LAMBDA0 <- matrix(c(0.1, 0.1, 0.1, 0.1), nrow = 2, byrow=TRUE)
+#' res2 <- mHSim(mHSpec2, LAMBDA0 = LAMBDA, n = 100)
+#' summary(res2)
 setMethod(
   f="mHSim",
   signature(object = "mHSpec"),
@@ -71,11 +98,6 @@ setMethod(
     inter_arrival <- numeric(length = n)
     mark <- numeric(length = n)
 
-    #names(lambda_process) <- paste0("lambda", 1:dimens)
-    #indxM <- matrix(rep(1:dimens, dimens), byrow = TRUE, nrow = dimens)
-    #names(lambda_component) <- paste0("lambda", indxM, t(indxM))
-    #names(N)  <- paste0("N", 1:dimens)
-    #names(Ng) <- paste0("Ng", 1:dimens)
 
     # Exact method
     for (k in 1:(n-1)) {
@@ -120,14 +142,8 @@ setMethod(
       lambda_process[k+1, ] <- MU + rowSums(new_LAMBDA)
     }
 
-    # convert to data frame
-    #lambda_component <- data.frame(lambda_component)
-    #lambda_process   <- data.frame(lambda_process)
 
-    #Ng <- data.frame(Ng)
-    #N  <- data.frame(N)
-
-    # naming the dataframes
+    # Set column names
     colnames(lambda_process) <- paste0("lambda", 1:dimens)
     indxM <- matrix(rep(1:dimens, dimens), byrow = TRUE, nrow = dimens)
     colnames(lambda_component) <- paste0("lambda", indxM, t(indxM))

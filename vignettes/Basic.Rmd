@@ -52,7 +52,7 @@ show(mHSpec1)
 To simulate, use function ```mHSim```.
 
 ```{r}
-res1 <- mHSim(mHSpec1,  n=10)
+res1 <- mHSim(mHSpec1,  n=20)
 ```
 
 
@@ -131,7 +131,7 @@ ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
 BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow=TRUE)
 ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
 JUMP2 <- function(n,...) rgeom(n, 0.65) + 1
-
+LAMBDA0 <- matrix(c(0.1, 0.1, 0.1, 0.1), nrow = 2, byrow=TRUE)
 mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
 ```
 
@@ -142,7 +142,8 @@ mHSpec2
 To simulate, use function ```mHSim```.
 
 ```{r}
-res2 <- mHSim(mHSpec2,  n=10)
+res2 <- mHSim(mHSpec2,  n=100)
+summary(res2)
 ```
 
 Plot N.
@@ -184,13 +185,31 @@ logLik(mHSpec2,  inter_arrival = inter_arrival2, jump_type = jump_type2, mark = 
 ```
 
 A log-likelihood estimation is performed using ```mHFit```.
-```mSpec2``` is regarded as a starting point of the numerical optimization.
+```mSpec0``` is regarded as a starting point of the numerical optimization.
 
 ```{r, warning=FALSE, error=FALSE}
-mle <- mHFit(mHSpec2, inter_arrival = inter_arrival2, jump_type = jump_type2, mark = mark2, constraint=FALSE)
-```
-```{r}
+mHSpec0 <- mHSpec2
+mle <- mHFit(mHSpec0, inter_arrival = inter_arrival2, jump_type = jump_type2, mark = mark2, constraint=FALSE)
 summary(mle)
 ```
 
+The parameters to be estimated depends on ```mHSpec0```.
+For example, if ```MU[1]``` and ```MU[2]``` are different, then both parameters are estimated.
+If ```MU[1]``` and ```MU[2]``` are equal, then two parameters are assumed to be the same.
 
+```{r}
+MU0 <- matrix(c(0.2, 0.21), nrow = 2)
+ALPHA0 <- matrix(c(0.75, 0.75, 0.75, 0.75), nrow = 2, byrow=TRUE)
+BETA0 <- matrix(c(2.25, 2.251, 2.251, 2.25), nrow = 2, byrow=TRUE)
+ETA0 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
+JUMP0 <- function(n,...) rgeom(n, 0.65) + 1
+
+mHSpec0 <- new("mHSpec", MU=MU0, ALPHA=ALPHA0, BETA=BETA0, ETA=ETA0, Jump =JUMP0)
+```
+
+
+```{r, warning=FALSE, error=FALSE}
+
+mle <- mHFit(mHSpec0, inter_arrival = inter_arrival2, jump_type = jump_type2, mark = mark2, constraint=FALSE)
+summary(mle)
+```

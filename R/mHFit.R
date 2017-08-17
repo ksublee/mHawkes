@@ -1,9 +1,13 @@
-#' Compute the loglikelihood function of the ground process
+#' Compute the loglikelihood function
 #'
-#' @param inter_arrival
-#' @param jump_type
-#' @param mark
-#' @param LAMBDA0
+#' This is a generic function.
+#' The loglikelihood of the ground process of the Hawkes model.
+#' (The estimation for jump distribution is not provided.)
+#'
+#' @param inter_arrival Inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.
+#' @param jump_type a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.
+#' @param mark a vector of mark (jump) sizes. Start with zero.
+#' @param LAMBDA0 The starting values of lambda. Must have the same dimensional matrix (n by n) with mHSpec.
 setMethod(
   f="logLik",
   signature(object="mHSpec"),
@@ -102,12 +106,35 @@ setMethod(
   }
 )
 
+
 setGeneric("mHFit", function(object, ...) standardGeneric("mHFit"))
 
+#' Perform a maximum likelihood estimation
+#'
+#' This function uses \code{\link[maxLik]{maxLik}} for the optimizer.
+#'
+#'
+#' @param inter_arrival Inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.
+#' @param jump_type a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.
+#' @param mark a vector of mark (jump) sizes. Start with zero.
+#' @param LAMBDA0 The starting values of lambda. Must have the same dimensional matrix (n by n) with mHSpec.
+#' @param constraint boolean. Set a constraint or not.
+#' @param method method for optimization.
+#'
+#' @examples
+#' # Generate sample path
+#' MU1 <- 0.3; ALPHA1 <- 1.5; BETA1 <- 2
+#' mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+#' res1 <- mHSim(mHSpec1,  n=5000)
+#'
+#' # Perform maximum likelihood estimation with a starting point defined by mHSpec0.
+#' mHSpec0 <- new("mHSpec", MU=0.2, ALPHA=1.2, BETA=1.8)
+#' mle <- mHFit(mHSpec0, inter_arrival = res1$inter_arrival)
+#' summary(mle)
 setMethod(
   f="mHFit",
   signature(object="mHSpec"),
-  function(object, inter_arrival, jump_type=NULL, mark=NULL, LAMBDA0=NULL, model="symmetric", constraint=FALSE, method="BFGS"){
+  function(object, inter_arrival, jump_type=NULL, mark=NULL, LAMBDA0=NULL, constraint=FALSE, method="BFGS"){
 
     # When the mark sizes are not provided, the jumps are all unit jumps.
     unit <- FALSE
