@@ -15,7 +15,7 @@ vignette: >
 To install ```mHawkes``` package, first install ```devtools```.
 
 ```{r, eval=FALSE}
-install.packages("devtools")  #if devtools is not installed
+# install.packages("devtools")  #if devtools is not installed
 ```
 
 Install ```mHawkes``` package from github.
@@ -32,12 +32,12 @@ library("mHawkes")
 
 ### one dimensional Hawkes process
 
-First, create a mHSpec which define the Hawkes model.
-Basically the model can be defined up to 9 dimensional 
+First, create a mHSpec which defines the Hawkes model.
+Basically the model can be defined up to 9 dimension
 but currently fully supported for one and two diemsional model especillay for estimation.
 The parameter of the model is defined by a matrix but numeric vectors are also supported for one dimesional model.
 
-The following is an example of one dimensional Hawkes model.
+The following is an example of one dimensional Hawkes model (without mark).
 Parameter inputs can be a numeric vector or 1 by 1 matrix.
 In the following case Jump and eta slots, which deteremine the mark, are default values.
 
@@ -68,15 +68,19 @@ Note that the ```inter_arrival``` and ```arrival``` start at zero.
 Thus, ```inter_arrival[2]``` and ```arrival[2]``` are first arrival time.
 
 
-Plot the realized processes.
+Simle way to plot the realized processes:
 ```{r}
-plot(res1$arrival, res1$N[,'N1'], 's', xlab="t", ylab="N")
+# plot(res1$arrival, res1$N[,'N1'], 's', xlab="t", ylab="N")
 ```
+
 Intensity process can be plotted by ```plotlambda``` function.
 
 ```{r}
-plotlambda(res1$arrival, res1$N[,'N1'], BETA1)
+# plotlambda(res1$arrival, res1$N[,'N1'], BETA1)
 ```
+
+The log-likelihood function is computed by ```logLik``` function.
+In this case, the inter-arrival times and ```mHSpec``` are inputs of the function. 
 
 ```{r}
 inter_arrival1 <- res1$inter_arrival
@@ -84,9 +88,14 @@ logLik(mHSpec1, inter_arrival = inter_arrival1)
 ```
 
 
+The likelihood estimation is performed using ```mHFit``` function.
+The specification of the initial values of the parameters, ```mHSpec0``` is needed.
+In this example, ```mHSpec0``` is set to be ```mHspec1` for simplicity. 
+
 
 ```{r, warning=FALSE}
-mle <- mHFit(mHSpec1, inter_arrival = inter_arrival1)
+mHSpec0 <- mHSpec1
+mle <- mHFit(mHSpec0, inter_arrival = inter_arrival1)
 summary(mle)
 ```
 
@@ -110,7 +119,7 @@ res1 <- mHSim(mHSpec1,  n=10)
 Plot the realized processes.
 
 ```{r}
-plot(res1$arrival, res1$N[,'N1'], 's', xlab="t", ylab="N")
+# plot(res1$arrival, res1$N[,'N1'], 's', xlab="t", ylab="N")
 ```
 
 
@@ -139,18 +148,18 @@ res2 <- mHSim(mHSpec2,  n=10)
 Plot N.
 
 ```{r}
-plot(res2$arrival[1:10], res2$N[1:10,1], 's')
+# plot(res2$arrival[1:10], res2$N[1:10,1], 's')
 ```
 
 ```{r}
-plot(res2)
+# plot(res2)
 ```
 
 
 Plot lambda.
 
 ```{r}
-plotlambda(res2$arrival[1:10], res2$lambda[1:10,1], BETA2[1,1])
+# plotlambda(res2$arrival[1:10], res2$lambda[1:10,1], BETA2[1,1])
 ```
 
 Frome the result, we get a vector of realized inter arrival times.
@@ -183,4 +192,5 @@ mle <- mHFit(mHSpec2, inter_arrival = inter_arrival2, jump_type = jump_type2, ma
 ```{r}
 summary(mle)
 ```
+
 
