@@ -51,9 +51,15 @@ summary.mHreal <- function(res, n=20){
 #' If the left continuous version is needed, this function is applied.
 #'
 #' @param res \code{mHreal} an S3 class contains the realized lambda processes.
-#'
+#' @return The left continuous version of lambda components as a matrix.
 #'
 #' @examples
+#' # Define the model.
+#' MU1 <- 0.3; ALPHA1 <- 1.5; BETA1 <- 2
+#' mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+#' # Simulate with mHSim funciton.
+#' res1 <- mHSim(mHSpec1,  n=100)
+#' get_lc_lambda(res1)
 get_lc_lambda <- function(res){
 
   dimens <- length(res$mHSpec@MU)
@@ -95,15 +101,14 @@ plot.mHreal <- function(res, ...){
 
 }
 
-
-
-#' Plot exponentially decaying lambda process
+#' Get a lambda process with more dense time step
 #'
-#' This plot method describes the exponentially decaying lambda (intensity) process.
-#'
+#' Since the intenisty process is exponencially decaying, to fully describe the intensity processs,
+#' we need more dense time line.
+#' This function gives a lambda process with more dense time line.
 #'
 #' @param arrival a vector of arrival times.
-#' @param lambda a vector of lambda processs.
+#' @param lambda a vector of lambda processs. It should be a right continuous version.
 #' @param beta a decaying parameter lambda.
 #' @param dt a small step size on time horizon.
 #'
@@ -113,8 +118,8 @@ plot.mHreal <- function(res, ...){
 #' mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
 #' # Simulate with mHSim funciton.
 #' res1 <- mHSim(mHSpec1,  n=100)
-#' plotlambda(res1$arrival, res1$lambda, BETA1)
-plotlambda <- function(arrival, lambda, beta, dt = NULL, ...){
+#' dl <- dense_lambda(res1$arrival, res1$lambda, BETA1)
+dense_lambda <- function(arrival, lambda, beta, dt = NULL, ...){
   maxT <- tail(arrival, n=1)
 
   if (is.null(dt)){
@@ -138,7 +143,34 @@ plotlambda <- function(arrival, lambda, beta, dt = NULL, ...){
       j <- j + 1
     }
   }
-  plot(time_vector, lambda_vector, 'l', xlab='t', ylab='lambda')
+
+  output <- cbind(time_vector, lambda_vector)
+  colnames(output) <- c("arrival", "lambda")
+
+  output
+}
+
+#' Plot exponentially decaying lambda process
+#'
+#' This plot method describes the exponentially decaying lambda (intensity) process.
+#'
+#'
+#' @param arrival a vector of arrival times.
+#' @param lambda a vector of lambda processs.
+#' @param beta a decaying parameter lambda.
+#' @param dt a small step size on time horizon.
+#'
+#'
+#' @examples
+#' MU1 <- 0.3; ALPHA1 <- 1.5; BETA1 <- 2
+#' mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+#' # Simulate with mHSim funciton.
+#' res1 <- mHSim(mHSpec1,  n=100)
+#' plot_lambda(res1$arrival, res1$lambda, BETA1)
+plot_lambda <- function(arrival, lambda, beta, dt = NULL, ...){
+
+  result <- dense_lambda(arrival, lambda, beta, dt)
+  plot(result[, "arrival"], result[, "lambda"], 'l', xlab='t', ylab='lambda')
 
 }
 

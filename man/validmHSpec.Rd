@@ -13,4 +13,5 @@ If one of the parameter is atomic, then all parameters should be atomic.
 If all parameters are matrix, then the nrow should be equal.
 The number of columns of MU matrix should be one.
 ALPHA, BETA, ETA matrices should be sqaure matrices.
+The dimension of the model is less than 10.
 }

@@ -166,52 +166,23 @@ setMethod(
     BETA <- matrix(object@BETA, nrow=dimens)
     ETA <- matrix(object@ETA, nrow=dimens)
 
-    # MU <- object@MU
-    # ALPHA <- object@ALPHA
-    # BETA <- object@BETA
-    # ETA <- object@ETA
-
-    # simple reference function to find unique value
-    find_ref <- function(M, notation){
-      reference <- character(length(M))
-
-      if (ncol(M) == 1){
-        k <- 1
-        for (i in 1:nrow(M)){
-          if (reference[k] == "")
-            reference[which(M == M[i])] <- paste0(notation, toString(i))
-          k <- k + 1
-        }
-      } else {
-        k <- 1
-        for  (i in 1:nrow(M)){
-          for (j in 1:ncol(M)) {
-            if (reference[k] == "")
-              reference[which( t(M) == M[i,j])] <- paste0(notation, toString(i), toString(j))
-            k <- k + 1
-          }
-        }
-      }
-      reference
-    }
-
-    ref_mu <- find_ref(MU, "mu")
+    ref_mu <- name_unique_coef_mtrx(MU, "mu")
     unique_mus <- unique(as.vector(MU))
     names(unique_mus) <- unique(ref_mu)
 
-    ref_alpha <- find_ref(ALPHA, "alpha")
+    ref_alpha <- name_unique_coef_mtrx(ALPHA, "alpha")
     unique_alphas <- unique(as.vector(t(ALPHA)))
     names(unique_alphas) <-  unique(ref_alpha)
 
 
-    ref_beta <- find_ref(BETA, "beta")
+    ref_beta <- name_unique_coef_mtrx(BETA, "beta")
     unique_betas <- unique(as.vector(t(BETA)))
     names(unique_betas) <-  unique(ref_beta)
 
     # constant unit jump or not
     if (unit) starting_point <- c(unique_mus, unique_alphas, unique_betas)
     else {
-      ref_eta <- find_ref(ETA, "eta")
+      ref_eta <- name_unique_coef_mtrx(ETA, "eta")
       unique_etas <- unique(as.vector(t(ETA)))
       names(unique_etas) <-  unique(ref_eta)
       starting_point <- c(unique_mus, unique_alphas, unique_betas, unique_etas)

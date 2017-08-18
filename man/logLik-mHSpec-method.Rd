@@ -22,3 +22,16 @@ This is a generic function.
 The loglikelihood of the ground process of the Hawkes model.
 (The estimation for jump distribution is not provided.)
 }
+\examples{
+# construct a mHSpec
+MU1 <- 0.2; ALPHA1 <- 1.0; BETA1 <- 2; ETA1 <- 0.2
+JUMP1 <- function(n,...) rgeom(n, 0.7) + 1
+mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1, Jump =JUMP1)
+# simualte a path
+res1 <- mHSim(mHSpec1,  LAMBDA0 = MU1, n=1000)
+inter_arrival <- res1$inter_arrival
+mark <- res1$mark
+# compute a loglikelihood function with parameter values in mHSpec1
+# LAMBDA0 = MU1 is a naive way of starting point choice.
+logLik(mHSpec1, LAMBDA0 = MU1, inter_arrival = inter_arrival, mark = mark)
+}

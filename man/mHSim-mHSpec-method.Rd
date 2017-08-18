@@ -27,6 +27,7 @@ mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
 # Simulate with mHSim funciton.
 res1 <- mHSim(mHSpec1,  n=100)
 summary(res1)
+as.matrix(res1)
 
 # example for two dimensional Hawkes process
 # Define the model.
@@ -40,4 +41,5 @@ mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2
 LAMBDA0 <- matrix(c(0.1, 0.1, 0.1, 0.1), nrow = 2, byrow=TRUE)
 res2 <- mHSim(mHSpec2, LAMBDA0 = LAMBDA, n = 100)
 summary(res2)
+as.matrix(res2)
 }

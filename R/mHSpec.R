@@ -154,16 +154,128 @@ setMethod(
 )
 
 
-
 setMethod(
   "show",
   "mHSpec",
   function(object){
-    cat("Marked Hawkes model with linear impact function.\n")
+
+    dimens <- length(object@MU)
+    cat(paste0(toString(dimens), "-dimensional (marked) Hawkes model with linear impact function.\n"))
     cat("The intensity process is defined by\n\n")
     cat("LAMBDA(t) = MU + int ALPHA %/% BETA (1+(k-1)ETA) %*% exp(-BETA(t-u)) d N(t)\n" )
     cat("\n")
-    cat("The parameters are : \n\n")
-    callNextMethod(object)
+    cat("Parameters: \n\n")
+
+    MU <- object@MU
+    cat("MU: \n")
+    print(MU)
+
+    ALPHA <- object@ALPHA
+    cat("\nALPHA: \n")
+    print(ALPHA)
+
+    BETA <- object@BETA
+    cat("\nBETA: \n")
+    print(BETA)
+
+    ETA <- object@ETA
+    cat("\nETA: \n")
+    print(ETA)
+
+    cat("\nMark distribution: \n")
+    print(object@Jump)
+    cat("------------------------------------------\n")
   }
 )
+
+name_unique_coef_mtrx <- function(M, notation){
+  reference <- character(length(M))
+
+  if (ncol(M) == 1){
+    k <- 1
+    for (i in 1:nrow(M)){
+      if (reference[k] == "")
+        reference[which(M == M[i])] <- paste0(notation, toString(i))
+      k <- k + 1
+    }
+  } else {
+    k <- 1
+    for  (i in 1:nrow(M)){
+      for (j in 1:ncol(M)) {
+        if (reference[k] == "")
+          reference[which( t(M) == M[i,j])] <- paste0(notation, toString(i), toString(j))
+        k <- k + 1
+      }
+    }
+  }
+  reference
+}
+
+setMethod(
+  "coef",
+  "mHSpec",
+  function(object, uniqueness = FALSE){
+
+    dimens <- length(object@MU)
+
+    coeff <- numeric()
+    name <- character()
+
+    if (uniqueness == FALSE | dimens == 1){
+
+      #MU
+      name <- c(name, sapply(seq(1, dimens), function(x) paste0("mu", x)) )
+
+      #ALPHA
+      for (i in 1:dimens){
+        for (j in 1:dimens){
+          name <- c(name, paste0("alpha", i, j))
+        }
+      }
+
+      #BETA
+      for (i in 1:dimens){
+        for (j in 1:dimens){
+          name <- c(name, paste0("beta", i, j))
+        }
+      }
+
+      #ETA
+      for (i in 1:dimens){
+        for (j in 1:dimens){
+          name <- c(name, paste0("eta", i, j))
+        }
+      }
+
+      coeff <- c(as.vector(object@MU), as.vector(t(object@ALPHA)), as.vector(t(object@BETA)), as.vector(t(object@ETA)))
+
+
+    } else {
+
+      #MU
+      unique_mus <- unique(as.vector(object@MU))
+      name <- c(name, unique(name_unique_coef_mtrx(object@MU, "mu")))
+
+      #ALPHA
+      unique_alphas <- unique(as.vector(t(object@ALPHA)))
+      name <- c(name, unique(name_unique_coef_mtrx(object@ALPHA, "alpha")))
+
+      #BETA
+      unique_betas <- unique(as.vector(t(object@BETA)))
+      name <- c(name, unique(name_unique_coef_mtrx(object@BETA, "beta")))
+
+      #ETA
+      unique_etas <- unique(as.vector(t(object@ETA)))
+      name <- c(name, unique(name_unique_coef_mtrx(object@ETA, "eta")))
+
+      coeff <- c(unique_mus, unique_alphas, unique_betas, unique_etas)
+
+    }
+
+    names(coeff) <- name
+    coeff
+
+  }
+)
+
+
