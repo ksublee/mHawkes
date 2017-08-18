@@ -1,10 +1,10 @@
-print.mHreal <- function(res, n=10){
+print.mHReal <- function(res, n=10){
   cat(".........\n")
   print.default(res)
 }
 
 
-as.matrix.mHreal <- function(res){
+as.matrix.mHReal <- function(res){
 
   mtrx <- numeric()
   for (i in 2:length(res)){
@@ -16,11 +16,11 @@ as.matrix.mHreal <- function(res){
   mtrx
 }
 
-as.data.frame.mHreal <- function(res){
+as.data.frame.mHReal <- function(res){
   as.data.frame(as.matrix(res))
 }
 
-summary.mHreal <- function(res, n=20){
+summary.mHReal <- function(res, n=20){
 
   cat("------------------------------------------\n")
   cat("Simulation result of marked Hawkes model.\n")
@@ -47,10 +47,10 @@ summary.mHreal <- function(res, n=20){
 
 #' Get left continuous version of lambda process
 #'
-#' The realized version of the lambda process in \code{mHreal} is right continuous version.
+#' The realized version of the lambda process in \code{mHReal} is right continuous version.
 #' If the left continuous version is needed, this function is applied.
 #'
-#' @param res \code{mHreal} an S3 class contains the realized lambda processes.
+#' @param res \code{mHReal} an S3 class contains the realized lambda processes.
 #' @return The left continuous version of lambda components as a matrix.
 #'
 #' @examples
@@ -87,7 +87,7 @@ get_lc_lambda <- function(res){
 }
 
 
-plot.mHreal <- function(res, ...){
+plot.mHReal <- function(res, ...){
 
   dimens <- ncol(res$N)
   par(mfrow=c(dimens, 1))
