@@ -3,7 +3,7 @@
 \docType{methods}
 \name{mHFit,mHSpec-method}
 \alias{mHFit,mHSpec-method}
-\title{Perform a maximum likelihood estimation.}
+\title{Perform a maximum likelihood estimation}
 \usage{
 \S4method{mHFit}{mHSpec}(object, inter_arrival, jump_type = NULL,
   mark = NULL, LAMBDA0 = NULL, constraint = FALSE, method = "BFGS")
@@ -19,7 +19,7 @@
 
 \item{constraint}{boolean. Set a constraint or not.}
 
-\item{method}{method for optimization.}
+\item{method}{method for optimization. For more information, see \code{\link[maxLik]{maxLik}}.}
 }
 \description{
 This function uses \code{\link[maxLik]{maxLik}} for the optimizer.

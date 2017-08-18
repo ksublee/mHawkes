@@ -1,6 +1,16 @@
 #'
 setClassUnion("matrixORnumeric", c("matrix", "numeric"))
 
+
+#' Check the validity of mHSpec
+#'
+#' This function checks the validity of mHSpec.
+#' For one dimensional case, if one of the parameter is not matrix, then all parameters should not be matrix.
+#' If one of the parameter is atomic, then all parameters should be atomic.
+#' If all parameters are matrix, then the nrow should be equal.
+#' The number of columns of MU matrix should be one.
+#' ALPHA, BETA, ETA matrices should be sqaure matrices.
+#' The dimension of the model is less than 10.
 validmHSpec <- function(object) {
 
   if(!is.matrix(object@MU) | !is.matrix(object@ALPHA) | !is.matrix(object@BETA) | (!is.null(object@ETA) & !is.matrix(object@ETA))){

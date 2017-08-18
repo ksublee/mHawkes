@@ -7,7 +7,20 @@
 #' @param inter_arrival Inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.
 #' @param jump_type a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.
 #' @param mark a vector of mark (jump) sizes. Start with zero.
-#' @param LAMBDA0 The starting values of lambda. Must have the same dimensional matrix (n by n) with mHSpec.
+#' @param LAMBDA0 The starting values of lambda. Must have the same dimensional matrix (n by n) with \code{mHSpec}.
+#'
+#' @examples
+#' # construct a mHSpec
+#' MU1 <- 0.2; ALPHA1 <- 1.0; BETA1 <- 2; ETA1 <- 0.2
+#' JUMP1 <- function(n,...) rgeom(n, 0.7) + 1
+#' mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1, Jump =JUMP1)
+#' # simualte a path
+#' res1 <- mHSim(mHSpec1,  LAMBDA0 = MU1, n=1000)
+#' inter_arrival <- res1$inter_arrival
+#' mark <- res1$mark
+#' # compute a loglikelihood function with parameter values in mHSpec1
+#' # LAMBDA0 = MU1 is a naive way of starting point choice.
+#' logLik(mHSpec1, LAMBDA0 = MU1, inter_arrival = inter_arrival, mark = mark)
 setMethod(
   f="logLik",
   signature(object="mHSpec"),
@@ -95,7 +108,8 @@ setMethod(
       sum_integrated_lambda_component <- sum_integrated_lambda_component + sum(current_LAMBDA / BETA * ( 1 - decayed ))
 
       # sum of log lambda when jump occurs
-      lambda_lc <- MU + rowSums(decayed_LAMBDA)
+      if (dimens == 1) lambda_lc <- MU + decayed_LAMBDA
+      else lambda_lc <- MU + rowSums(decayed_LAMBDA)
       sum_log_lambda <- sum_log_lambda + log(lambda_lc[jump_type[k+1]])
 
     }
@@ -119,7 +133,7 @@ setGeneric("mHFit", function(object, ...) standardGeneric("mHFit"))
 #' @param mark a vector of mark (jump) sizes. Start with zero.
 #' @param LAMBDA0 The starting values of lambda. Must have the same dimensional matrix (n by n) with mHSpec.
 #' @param constraint boolean. Set a constraint or not.
-#' @param method method for optimization.
+#' @param method method for optimization. For more information, see \code{\link[maxLik]{maxLik}}.
 #'
 #' @examples
 #' # Generate sample path

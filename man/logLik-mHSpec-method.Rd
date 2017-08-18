@@ -15,7 +15,7 @@
 
 \item{mark}{a vector of mark (jump) sizes. Start with zero.}
 
-\item{LAMBDA0}{The starting values of lambda. Must have the same dimensional matrix (n by n) with mHSpec.}
+\item{LAMBDA0}{The starting values of lambda. Must have the same dimensional matrix (n by n) with \code{mHSpec}.}
 }
 \description{
 This is a generic function.

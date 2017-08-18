@@ -20,6 +20,7 @@ setGeneric("mHSim", function(object, ...) standardGeneric("mHSim"))
 #' # Simulate with mHSim funciton.
 #' res1 <- mHSim(mHSpec1,  n=100)
 #' summary(res1)
+#' as.matrix(res1)
 #'
 #' # example for two dimensional Hawkes process
 #' # Define the model.
@@ -33,6 +34,7 @@ setGeneric("mHSim", function(object, ...) standardGeneric("mHSim"))
 #' LAMBDA0 <- matrix(c(0.1, 0.1, 0.1, 0.1), nrow = 2, byrow=TRUE)
 #' res2 <- mHSim(mHSpec2, LAMBDA0 = LAMBDA, n = 100)
 #' summary(res2)
+#' as.matrix(res2)
 setMethod(
   f="mHSim",
   signature(object = "mHSpec"),

@@ -20,18 +20,19 @@ as.data.frame.mHreal <- function(res){
   as.data.frame(as.matrix(res))
 }
 
-summary.mHreal <- function(res){
+summary.mHreal <- function(res, n=20){
 
-  cat("----------------------------------------\n")
+  cat("------------------------------------------\n")
   cat("Simulation result of marked Hawkes model.\n")
-  cat("realized path:\n")
+  cat("Realized path:\n")
   mtrx <- as.matrix(res)
   dimens <- length(res$mHSpec@MU)
   name_N  <- paste0("N", 1:dimens)
+  name_lambda  <- paste0("lambda", 1:dimens)
 
-  len <- min(10, length(mtrx[,"arrival"]))
+  len <- min(n, length(mtrx[,"arrival"]))
 
-  print(mtrx[1:len, c("arrival",name_N)])
+  print(mtrx[1:len, c("arrival", name_N, name_lambda)])
   if ( length(mtrx[,"arrival"]) > len){
 
     remaning <- length(mtrx[,"arrival"]) - len
@@ -41,13 +42,44 @@ summary.mHreal <- function(res){
     cat(" more rows \n")
   }
 
-  cat("----------------------------------------\n")
+  cat("------------------------------------------\n")
 }
 
-
+#' Get left continuous version of lambda process
+#'
+#' The realized version of the lambda process in \code{mHreal} is right continuous version.
+#' If the left continuous version is needed, this function is applied.
+#'
+#' @param res \code{mHreal} an S3 class contains the realized lambda processes.
+#'
+#'
+#' @examples
 get_lc_lambda <- function(res){
 
+  dimens <- length(res$mHSpec@MU)
+  lc_lambda_component <- res$lambda_component
+
+  for (i in 2:nrow(lc_lambda_component)) {
+
+    if (dimens == 1) {
+      impact <- res$mHSpec@ALPHA * ( 1 + (res$mark[i] - 1 ) * res$mHSpec@ETA )
+      print(impact)
+      lc_lambda_component[i] <- lc_lambda_component[i] - impact
+
+    } else {
+
+      col_indx <- seq(res$jump_type[i], dimens^2, dimens)
+      lc_lambda_component[i, col_indx] <- lc_lambda_component[i, col_indx] -
+        res$mHSpec@ALPHA[, res$jump_type[i]] * ( 1 + (res$mark[i] - 1 ) * res$mHSpec@ETA[, res$jump_type[i]])
+
+    }
+
+  }
+
+
+  lc_lambda_component
 }
+
 
 plot.mHreal <- function(res, ...){
 
@@ -63,21 +95,30 @@ plot.mHreal <- function(res, ...){
 
 }
 
-ggplot.mHreal <- function(res){
 
-  dfr <- as.data.frame(res)
 
-  dfr2 <- melt(dfr[,c("arrival", "N1", "N2")], id.vars="arrival", value.name="N", variable.name="Ns")
-
-  ggplot(data=dfr2, aes(x=arrival, y=N, group = Ns, colour = Ns)) +
-    geom_step()
-}
-
+#' Plot exponentially decaying lambda process
+#'
+#' This plot method describes the exponentially decaying lambda (intensity) process.
+#'
+#'
+#' @param arrival a vector of arrival times.
+#' @param lambda a vector of lambda processs.
+#' @param beta a decaying parameter lambda.
+#' @param dt a small step size on time horizon.
+#'
+#'
+#' @examples
+#' MU1 <- 0.3; ALPHA1 <- 1.5; BETA1 <- 2
+#' mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+#' # Simulate with mHSim funciton.
+#' res1 <- mHSim(mHSpec1,  n=100)
+#' plotlambda(res1$arrival, res1$lambda, BETA1)
 plotlambda <- function(arrival, lambda, beta, dt = NULL, ...){
   maxT <- tail(arrival, n=1)
 
   if (is.null(dt)){
-    inter_arrival <- arrival[2:length(arrival)] - arrival[1:(length(arrival)-1)]
+    inter_arrival <- arrival[-1] - arrival[-length(arrival)]
     dt <- mean(inter_arrival)/100
   }
 
