@@ -1,14 +1,15 @@
 
-setGeneric("mHVol", function(object, ...) standardGeneric("mHVol"))
+setGeneric("mHVar", function(object, ...) standardGeneric("mHVar"))
 
-#' Compute the Hawkes volatility
+#' Compute the Hawkes variance
 #'
 #' This method is useful in quantitative finance or financial econometics.
 #' This method only works for a two-dimensional symmetric model.
 #' Assume that a two-dimensional Hawkes process describes the tick dynamics of financial price process.
 #' One of the two Hawkes processes is responsible for the upward movement and the other for the downward movement.
 #' Therefore, the difference between two process, N1 - N2, describes the tick price process.
-#' This method computes the volatility of the return process.
+#' This method computes Var(N1(t) - N2(t)).
+#'
 #'
 #' @param object
 #' @param tick_ratio
@@ -17,9 +18,9 @@ setGeneric("mHVol", function(object, ...) standardGeneric("mHVol"))
 #' @mean_jump_square
 #'
 setMethod(
-  f="mHVol",
+  f="mHVar",
   signature(object = "mHSpec"),
-  definition = function(object, tick_ratio, time_length, mean_jump = NULL, mean_jump_square = NULL, sample_size = 10000){
+  definition = function(object, time_length, mean_jump = NULL, mean_jump_square = NULL, sample_size = 10000){
 
     cat("This method only works for a two-dimensional symmetric model with i.i.d. jump distribution.\n")
 
@@ -54,11 +55,7 @@ setMethod(
     C2 <- 2*(alpha_s - alpha_c)*K_b/(beta - alpha_s_ + alpha_c_)
     C3 <- K^2/K
 
-    variance <- 2*tick_ratio^2*K*E_lambda*(C1 + C2 + C3)*time_length
-
-    sqrt(variance)
-
+    variance <- 2*K*E_lambda*(C1 + C2 + C3)*time_length
 
   }
 )
-

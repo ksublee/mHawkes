@@ -91,7 +91,7 @@ setMethod(
     lambda_component <- matrix(sapply(LAMBDA0, c, numeric(length = n - 1)), ncol = dimens^2)
     rowSums_LAMBDA0 <- rowSums(matrix(LAMBDA0, nrow=dimens))
 
-    lambda_process   <- matrix(sapply(MU + rowSums_LAMBDA0, c, numeric(length = n - 1)), ncol = dimens)
+    lambda   <- matrix(sapply(MU + rowSums_LAMBDA0, c, numeric(length = n - 1)), ncol = dimens)
 
     Ng <- matrix(numeric(length = dimens * n), ncol = dimens)
     N  <- matrix(numeric(length = dimens * n), ncol = dimens)
@@ -102,12 +102,12 @@ setMethod(
 
 
     # Exact method
-    for (k in 1:(n-1)) {
+    for (k in 2:n) {
 
       # Generate candidate arrivals
       # arrival due to mu
       candidate_arrival <- rexp(dimens, rate = MU)
-      current_LAMBDA <- matrix(as.numeric(lambda_component[k, ]), nrow = dimens, byrow = TRUE)
+      current_LAMBDA <- matrix(as.numeric(lambda_component[k-1, ]), nrow = dimens, byrow = TRUE)
 
       # arrival due to components
 
@@ -115,44 +115,55 @@ setMethod(
       candidate_arrival <- cbind(candidate_arrival, -1 / BETA * log(pmax(matrixD, 0)))
 
       # The minimum is inter arrival time
-      inter_arrival[k+1] <- min(candidate_arrival)
-      minIndex <- which(candidate_arrival == inter_arrival[k+1], arr.ind = TRUE) #row and col
+      inter_arrival[k] <- min(candidate_arrival)
+      minIndex <- which(candidate_arrival == inter_arrival[k], arr.ind = TRUE) #row and col
 
       jumpType <- minIndex[1]  # row
-      jump_type[k+1] <- jumpType
+      jump_type[k] <- jumpType
 
-      mark[k+1] <- object@Jump(n = 1)  # generate one random number
 
-      Ng[k+1, ] <- Ng[k, ]
-      Ng[k+1, jumpType] <- Ng[k, jumpType] + 1
-      N[k+1, ] <- N[k, ]
-      N[k+1, jumpType] <- N[k, jumpType] + mark[k+1]
+      # lambda decayed due to time, impact due to mark is not added yet
+      decayled_lambda <- current_LAMBDA * exp(-BETA * inter_arrival[k])
+      lambda_component[k, ] <- t(decayled_lambda)
+      lambda[k, ] <- MU + rowSums(decayled_lambda)
+
+      # generate one random number
+      jump_generator <- object@Jump
+      mark[k] <- object@Jump(n = 1, k = k, N = N, Ng = Ng,
+                             lambda = lambda, lambda_component = lambda_component,
+                             jump_type = jump_type)
+
+      Ng[k, ] <- Ng[k-1, ]
+      Ng[k, jumpType] <- Ng[k-1, jumpType] + 1
+      N[k, ] <- N[k-1, ]
+      N[k, jumpType] <- N[k-1, jumpType] + mark[k]
 
       # update lambda
       if (dimens == 1) {
-        Impact <- ALPHA * (1 + (mark[k+1] - 1) * ETA )
+        Impact <- ALPHA * (1 + (mark[k] - 1) * ETA )
       } else {
         Impact <- matrix(rep(0, dimens^2), nrow = dimens)
-        Impact[ , jumpType] <- ALPHA[ , jumpType] * (1 + (mark[k+1] - 1) * ETA[ , jumpType])
+        Impact[ , jumpType] <- ALPHA[ , jumpType] * (1 + (mark[k] - 1) * ETA[ , jumpType])
       }
-
-      new_LAMBDA <- current_LAMBDA * exp(-BETA * inter_arrival[k+1]) + Impact
 
       # new_LAMBDA = [[lambda11, lambda12, ...], [lambda21, lambda22, ...], ...]
       # lambda_component = {"lambda11", "lambda12", ..., "lambda21", "lambda22", ...}
-      lambda_component[k+1, ] <- t(new_LAMBDA)
-      lambda_process[k+1, ] <- MU + rowSums(new_LAMBDA)
+      #
+      # Impact is added.
+      new_lambda <- decayled_lambda + Impact
+      lambda_component[k, ] <- t(new_lambda)
+      lambda[k, ] <- MU + rowSums(new_lambda)
     }
 
 
     # Set column names
-    colnames(lambda_process) <- paste0("lambda", 1:dimens)
+    colnames(lambda) <- paste0("lambda", 1:dimens)
     indxM <- matrix(rep(1:dimens, dimens), byrow = TRUE, nrow = dimens)
     colnames(lambda_component) <- paste0("lambda", indxM, t(indxM))
     colnames(N)  <- paste0("N", 1:dimens)
     colnames(Ng) <- paste0("Ng", 1:dimens)
 
-    realization <- list(object, inter_arrival, cumsum(inter_arrival), jump_type, mark, N, Ng, lambda_process, lambda_component)
+    realization <- list(object, inter_arrival, cumsum(inter_arrival), jump_type, mark, N, Ng, lambda, lambda_component)
     names(realization) <- c("mHSpec", "inter_arrival", "arrival", "jump_type", "mark", "N", "Ng", "lambda", "lambda_component")
     class(realization) <- c("mHreal")
 
