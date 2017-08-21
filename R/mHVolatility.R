@@ -1,10 +1,25 @@
 
 setGeneric("mHVol", function(object, ...) standardGeneric("mHVol"))
 
+#' Compute the Hawkes volatility
+#'
+#' This method is useful in quantitative finance or financial econometics.
+#' This method only works for a two-dimensional symmetric model.
+#' Assume that a two-dimensional Hawkes process describes the tick dynamics of financial price process.
+#' One of the two Hawkes processes is responsible for the upward movement and the other for the downward movement.
+#' Therefore, the difference between two process, N1 - N2, describes the tick price process.
+#' This method computes the volatility of the return process.
+#'
+#' @param object
+#' @param tick_ratio
+#' @time_length
+#' @mean_jump
+#' @mean_jump_square
+#'
 setMethod(
   f="mHVol",
   signature(object = "mHSpec"),
-  definition = function(object, tick_ratio, time_length, mean_jump = NULL, mean_jump_square = NULL){
+  definition = function(object, tick_ratio, time_length, mean_jump = NULL, mean_jump_square = NULL, sample_size = 10000){
 
     cat("This method only works for a two-dimensional symmetric model with i.i.d. jump distribution.\n")
 
@@ -15,13 +30,13 @@ setMethod(
     eta <- object@ETA[1,1]
 
     if(is.null(mean_jump)){
-      K <- mean(object@Jump(10000))
+      K <- mean(object@Jump(sample_size))
     } else {
       K <- mean_jump
     }
 
     if(is.null(mean_jump_square)){
-      K2 <- mean(object@Jump(10000)^2)
+      K2 <- mean(object@Jump(sample_size)^2)
     } else {
       K2 <- mean_jump_square
     }

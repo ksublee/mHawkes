@@ -132,7 +132,8 @@ setGeneric("mHFit", function(object, ...) standardGeneric("mHFit"))
 #' @param jump_type a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.
 #' @param mark a vector of mark (jump) sizes. Start with zero.
 #' @param LAMBDA0 The starting values of lambda. Must have the same dimensional matrix (n by n) with mHSpec.
-#' @param constraint boolean. Set a constraint or not.
+#' @param llh_fun user provided log-likelihood function.
+#' @param constraint constraint matrix. For more information, see \code{\link[maxLik]{maxLik}}.
 #' @param method method for optimization. For more information, see \code{\link[maxLik]{maxLik}}.
 #'
 #' @examples
@@ -148,7 +149,8 @@ setGeneric("mHFit", function(object, ...) standardGeneric("mHFit"))
 setMethod(
   f="mHFit",
   signature(object="mHSpec"),
-  function(object, inter_arrival, jump_type=NULL, mark=NULL, LAMBDA0=NULL, constraint=FALSE, method="BFGS"){
+  function(object, inter_arrival, jump_type = NULL, mark = NULL, LAMBDA0 = NULL, llh_fun = NULL,
+          grad = NULL, hess = NULL, constraint = NULL, method = "BFGS",  ...){
 
     # When the mark sizes are not provided, the jumps are all unit jumps.
     unit <- FALSE
@@ -166,10 +168,12 @@ setMethod(
     BETA <- matrix(object@BETA, nrow=dimens)
     ETA <- matrix(object@ETA, nrow=dimens)
 
+
     ref_mu <- name_unique_coef_mtrx(MU, "mu")
     unique_mus <- unique(as.vector(MU))
     names(unique_mus) <- unique(ref_mu)
 
+    # ref_alpha looks like ["alpha11", "alpha12", "alpha12", "alpha11"] when alpha11==alpha22, alpha12==alpha21
     ref_alpha <- name_unique_coef_mtrx(ALPHA, "alpha")
     unique_alphas <- unique(as.vector(t(ALPHA)))
     names(unique_alphas) <-  unique(ref_alpha)
@@ -210,70 +214,65 @@ setMethod(
 
 
     # loglikelihood function for maxLik
-    llh_maxLik <- function(param){
+    if (is.null(llh_fun)) {
+      llh_fun <- function(param){
 
-      # redefine unique vectors from param
-      unique_mus <- param[1:len_mu]
-      unique_alphas <- param[(len_mu + 1):(len_mu + len_alpha)]
-      unique_betas <- param[(len_mu + len_alpha + 1):(len_mu + len_alpha + len_beta)]
-      if (!unit) unique_etas <- param[(len_mu + len_alpha + len_beta + 1):(len_mu + len_alpha + len_beta + len_eta)]
+        # redefine unique vectors from param
+        unique_mus <- param[1:len_mu]
+        unique_alphas <- param[(len_mu + 1):(len_mu + len_alpha)]
+        unique_betas <- param[(len_mu + len_alpha + 1):(len_mu + len_alpha + len_beta)]
+        if (!unit) unique_etas <- param[(len_mu + len_alpha + len_beta + 1):(len_mu + len_alpha + len_beta + len_eta)]
 
-      # retreive MU, ALPHA, BETA, ETA matrix
-      MU <- matrix( rep(0, dimens))
-      k <- 1
-      for  (i in 1:dimens){
-        MU[i] <- unique_mus[ref_mu[k]]
-        k <- k + 1
-      }
-
-      ALPHA <- matrix( rep(0, dimens^2), nrow=dimens)
-      k <- 1
-      for  (i in 1:dimens){
-        for (j in 1:dimens) {
-          ALPHA[i,j] <- unique_alphas[ref_alpha[k]]
+        # retreive MU, ALPHA, BETA, ETA matrix
+        MU <- matrix( rep(0, dimens))
+        k <- 1
+        for  (i in 1:dimens){
+          MU[i] <- unique_mus[ref_mu[k]]
           k <- k + 1
         }
-      }
 
-      BETA <- matrix( rep(0, dimens^2), nrow=dimens)
-      k <- 1
-      for  (i in 1:dimens){
-        for (j in 1:dimens) {
-          BETA[i,j] <- unique_betas[ref_beta[k]]
-          k <- k + 1
-        }
-      }
-
-      if (unit) ETA <- matrix(rep(0, dimens^2), nrow=dimens)
-      else{
-        ETA <- matrix( rep(0, dimens^2), nrow=dimens)
+        ALPHA <- matrix( rep(0, dimens^2), nrow=dimens)
         k <- 1
         for  (i in 1:dimens){
           for (j in 1:dimens) {
-            ETA[i,j] <- unique_etas[ref_eta[k]]
+            ALPHA[i,j] <- unique_alphas[ref_alpha[k]]
             k <- k + 1
           }
         }
+
+        BETA <- matrix( rep(0, dimens^2), nrow=dimens)
+        k <- 1
+        for  (i in 1:dimens){
+          for (j in 1:dimens) {
+            BETA[i,j] <- unique_betas[ref_beta[k]]
+            k <- k + 1
+          }
+        }
+
+        if (unit) ETA <- matrix(rep(0, dimens^2), nrow=dimens)
+        else{
+          ETA <- matrix( rep(0, dimens^2), nrow=dimens)
+          k <- 1
+          for  (i in 1:dimens){
+            for (j in 1:dimens) {
+              ETA[i,j] <- unique_etas[ref_eta[k]]
+              k <- k + 1
+            }
+          }
+        }
+
+        mHSpec0 <- new("mHSpec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, Jump=object@Jump)
+
+
+        llh <- logLik(mHSpec0, inter_arrival = inter_arrival, jump_type = jump_type, mark = mark, LAMBDA0)
+        return(llh)
+
       }
-
-      mHSpec0 <- new("mHSpec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, Jump=object@Jump)
-
-
-      llh <- logLik(mHSpec0, inter_arrival = inter_arrival, jump_type = jump_type, mark = mark, LAMBDA0)
-      return(llh)
-
     }
 
-    if (constraint)
-      mle<-maxLik::maxLik(logLik=llh_maxLik,
-                          start=starting_point, constraint=list(ineqA=A, ineqB=B),
-                          method=method)
-    else
-      mle<-maxLik::maxLik(logLik=llh_maxLik,
-                          start=starting_point,
-                          method=method)
 
-    mle
+    mle<-maxLik::maxLik(logLik=llh_fun,
+                        start=starting_point, grad, hess, constraint, method = method)
 
   }
 )

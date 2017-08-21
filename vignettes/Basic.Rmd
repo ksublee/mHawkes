@@ -189,7 +189,7 @@ A log-likelihood estimation is performed using ```mHFit```.
 
 ```{r, warning=FALSE, error=FALSE}
 mHSpec0 <- mHSpec2
-mle <- mHFit(mHSpec0, inter_arrival = inter_arrival2, jump_type = jump_type2, mark = mark2, constraint=FALSE)
+mle <- mHFit(mHSpec0, inter_arrival = inter_arrival2, jump_type = jump_type2, mark = mark2)
 summary(mle)
 ```
 
@@ -210,6 +210,6 @@ mHSpec0 <- new("mHSpec", MU=MU0, ALPHA=ALPHA0, BETA=BETA0, ETA=ETA0, Jump =JUMP0
 
 ```{r, warning=FALSE, error=FALSE}
 
-mle <- mHFit(mHSpec0, inter_arrival = inter_arrival2, jump_type = jump_type2, mark = mark2, constraint=FALSE)
+mle <- mHFit(mHSpec0, inter_arrival = inter_arrival2, jump_type = jump_type2, mark = mark2)
 summary(mle)
 ```
