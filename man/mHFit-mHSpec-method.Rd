@@ -6,7 +6,8 @@
 \title{Perform a maximum likelihood estimation}
 \usage{
 \S4method{mHFit}{mHSpec}(object, inter_arrival, jump_type = NULL,
-  mark = NULL, LAMBDA0 = NULL, constraint = FALSE, method = "BFGS")
+  mark = NULL, LAMBDA0 = NULL, llh_fun = NULL, grad = NULL,
+  hess = NULL, constraint = NULL, method = "BFGS", ...)
 }
 \arguments{
 \item{inter_arrival}{Inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.}
@@ -17,7 +18,9 @@
 
 \item{LAMBDA0}{The starting values of lambda. Must have the same dimensional matrix (n by n) with mHSpec.}
 
-\item{constraint}{boolean. Set a constraint or not.}
+\item{llh_fun}{user provided log-likelihood function.}
+
+\item{constraint}{constraint matrix. For more information, see \code{\link[maxLik]{maxLik}}.}
 
 \item{method}{method for optimization. For more information, see \code{\link[maxLik]{maxLik}}.}
 }

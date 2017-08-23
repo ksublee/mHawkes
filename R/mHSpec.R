@@ -2,6 +2,7 @@
 setClassUnion("matrixORnumeric", c("matrix", "numeric"))
 
 
+
 #' Check the validity of mHSpec
 #'
 #' This function checks the validity of mHSpec.
@@ -83,7 +84,6 @@ validmHSpec <- function(object) {
 
 }
 
-
 #' An S4 class to represent a marked Hawkes model
 #'
 #' This class represents a specification of a marked Hawkes model with exponential kernel.
@@ -111,10 +111,9 @@ setClass(
     BETA = "matrixORnumeric",
     ETA = "matrixORnumeric",
     Jump = "function"
-    ),
+  ),
   validity = validmHSpec
 )
-
 
 setMethod(
   "initialize",

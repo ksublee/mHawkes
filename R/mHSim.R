@@ -100,6 +100,12 @@ setMethod(
     inter_arrival <- numeric(length = n)
     mark <- numeric(length = n)
 
+    # Set column names
+    colnames(lambda) <- paste0("lambda", 1:dimens)
+    indxM <- matrix(rep(1:dimens, dimens), byrow = TRUE, nrow = dimens)
+    colnames(lambda_component) <- paste0("lambda", indxM, t(indxM))
+    colnames(N)  <- paste0("N", 1:dimens)
+    colnames(Ng) <- paste0("Ng", 1:dimens)
 
     # Exact method
     for (k in 2:n) {
@@ -156,16 +162,9 @@ setMethod(
     }
 
 
-    # Set column names
-    colnames(lambda) <- paste0("lambda", 1:dimens)
-    indxM <- matrix(rep(1:dimens, dimens), byrow = TRUE, nrow = dimens)
-    colnames(lambda_component) <- paste0("lambda", indxM, t(indxM))
-    colnames(N)  <- paste0("N", 1:dimens)
-    colnames(Ng) <- paste0("Ng", 1:dimens)
-
     realization <- list(object, inter_arrival, cumsum(inter_arrival), jump_type, mark, N, Ng, lambda, lambda_component)
     names(realization) <- c("mHSpec", "inter_arrival", "arrival", "jump_type", "mark", "N", "Ng", "lambda", "lambda_component")
-    class(realization) <- c("mHreal")
+    class(realization) <- c("mHReal")
 
     return(realization)
   }
