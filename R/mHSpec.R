@@ -139,7 +139,13 @@ setMethod(
     .Object@ALPHA <- ALPHA
     .Object@BETA <- BETA
     .Object@ETA <- ETA
-    .Object@Jump <- Jump
+
+    # check the number of arguments
+    if(length(formals(Jump)) == 1){
+      .Object@Jump <- function(n, ...) Jump(n)
+    } else {
+      .Object@Jump <- Jump
+    }
 
     # Check spectral radius
     if ( stability_check==TRUE && max(abs(eigen(ALPHA/BETA)$values)) >= 1)
