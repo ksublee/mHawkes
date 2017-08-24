@@ -11,6 +11,8 @@
   method = "BFGS", ...)
 }
 \arguments{
+\item{object}{mHSpec, or can be omitted.}
+
 \item{inter_arrival}{Inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.}
 
 \item{jump_type}{a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.}
@@ -49,6 +51,11 @@ res2 <- mHSim(mHSpec2)
 
 # Perform maximum likelihood estimation
 summary(mHFit(mHSpec2, arrival = res2$arrival, N = res2$N))
-summary(mHFit(mHSpec2, inter_arrival = res2$inter_arrival, mark = res2$mark2, jump_type = res2$jump_type))
+summary(mHFit(mHSpec2, inter_arrival = res2$inter_arrival,
+        mark = res2$mark2, jump_type = res2$jump_type))
 summary(mHFit(arrival = res2$arrival, N = res2$N))
+
+}
+\seealso{
+\code{\link{mHSpec-class}}, \code{\link{mHSim,mHSpec-method}}
 }

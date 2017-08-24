@@ -34,4 +34,8 @@ mark <- res1$mark
 # compute a loglikelihood function with parameter values in mHSpec1
 # LAMBDA0 = MU1 is a naive way of starting point choice.
 logLik(mHSpec1, LAMBDA0 = MU1, inter_arrival = inter_arrival, mark = mark)
+
+}
+\seealso{
+\code{\link{mHSpec-class}}, \code{\link{mHFit,mHSpec-method}}
 }

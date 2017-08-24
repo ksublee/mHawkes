@@ -21,6 +21,8 @@
 #' # compute a loglikelihood function with parameter values in mHSpec1
 #' # LAMBDA0 = MU1 is a naive way of starting point choice.
 #' logLik(mHSpec1, LAMBDA0 = MU1, inter_arrival = inter_arrival, mark = mark)
+#'
+#' @seealso \code{\link{mHSpec-class}}, \code{\link{mHFit,mHSpec-method}}
 setMethod(
   f="logLik",
   signature(object="mHSpec"),
@@ -128,6 +130,7 @@ setGeneric("mHFit", function(object, ...) standardGeneric("mHFit"))
 #' This function uses \code{\link[maxLik]{maxLik}} for the optimizer.
 #'
 #'
+#' @param object mHSpec, or can be omitted.
 #' @param inter_arrival Inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.
 #' @param jump_type a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.
 #' @param mark a vector of mark (jump) sizes. Start with zero.
@@ -157,8 +160,11 @@ setGeneric("mHFit", function(object, ...) standardGeneric("mHFit"))
 #'
 #' # Perform maximum likelihood estimation
 #' summary(mHFit(mHSpec2, arrival = res2$arrival, N = res2$N))
-#' summary(mHFit(mHSpec2, inter_arrival = res2$inter_arrival, mark = res2$mark2, jump_type = res2$jump_type))
+#' summary(mHFit(mHSpec2, inter_arrival = res2$inter_arrival,
+#'         mark = res2$mark2, jump_type = res2$jump_type))
 #' summary(mHFit(arrival = res2$arrival, N = res2$N))
+#'
+#' @seealso \code{\link{mHSpec-class}}, \code{\link{mHSim,mHSpec-method}}
 setMethod(
   f="mHFit",
   signature(object="mHSpec"),
@@ -179,7 +185,7 @@ setMethod(
     # argument check
     if(dimens != 1 & is.null(N) & is.null(jump_type)){
       stop("One of N and jump_type should be provided.")
-    } else if(is.null(jump_type)){
+    } else if(dimens != 1 & is.null(jump_type)){
 
       if(!is.matrix(N)) N <- matrix(N, nrow = length(N))
 

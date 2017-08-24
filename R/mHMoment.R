@@ -1,5 +1,62 @@
+setGeneric("mean_lambda", function(object, ...) standardGeneric("mean_lambda"))
 
-setGeneric("mHVar", function(object, ...) standardGeneric("mHVar"))
+#' Compute the long-run mean of lambda
+#'
+#' This method only works for a one-dimensional or two-dimensional symmetric model.
+#'
+#' @param object mHSpec, a one-dimensional or two-dimensional symmetricl model
+#' @param mean_jump the mean of jump distribution. If not specified, simulated mean value will be used.
+#' @param sample_size the number of simulation to compute the mean of jump and squared jump
+#' @param seed_value seed for random number generation.
+setMethod(
+  f = "mean_lambda",
+  signature(object = "mHSpec"),
+  definition = function(object, mean_jump = NULL, sample_size = 10000, seed_value = 903){
+
+    dimens <- length(object@MU)
+
+    if (dimens == 1){
+
+      mu <- object@MU
+      alpha <- object@ALPHA
+      beta <- object@BETA
+      eta <- object@ETA
+
+      set.seed(seed_value)
+
+      if(is.null(mean_jump)){
+        K <- mean(object@Jump(sample_size))
+      } else {
+        K <- mean_jump
+      }
+
+      mu*beta/(beta - alpha*(1 + (K - 1)*eta))
+
+    } else if (dimens == 2){
+
+      mu <- object@MU[1]
+      alpha_s <- object@ALPHA[1,1]
+      alpha_c <- object@ALPHA[1,2]
+      beta <- object@BETA[1,1]
+      eta <- object@ETA[1,1]
+
+      if(is.null(mean_jump)){
+        K <- mean(object@Jump(sample_size))
+      } else {
+        K <- mean_jump
+      }
+
+
+      mu*beta/(beta - (alpha_s + alpha_c)*(1 + (K - 1)*eta))
+
+    }
+
+  }
+)
+
+
+
+setGeneric("var_diff", function(object, ...) standardGeneric("var_diff"))
 
 #' Compute the variance of Hawkes difference process
 #'
@@ -28,9 +85,9 @@ setGeneric("mHVar", function(object, ...) standardGeneric("mHVar"))
 #' mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
 #' mHVar(mHSpec2, 1)
 setMethod(
-  f="mHVar",
+  f = "var_diff",
   signature(object = "mHSpec"),
-  definition = function(object, time_length, mean_jump = NULL, mean_jump_square = NULL, sample_size = 10000, seed_value = 1){
+  definition = function(object, time_length, mean_jump = NULL, mean_jump_square = NULL, sample_size = 10000, seed_value = 903){
 
     dimens <- length(object@MU)
     if(dimens != 2) stop("This method only works for a two-dimensional symmetric model with i.i.d. jump distribution.\n")
