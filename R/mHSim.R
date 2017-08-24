@@ -14,6 +14,10 @@ setGeneric("mHSim", function(object, ...) standardGeneric("mHSim"))
 #'
 #' @examples
 #' # example for one dimensional Hawkes process (without mark)
+#' # Simple simulation for example
+#' mHSim()
+#' mHSim(dimens = 2)
+#'
 #' # Define the model.
 #' MU1 <- 0.3; ALPHA1 <- 1.5; BETA1 <- 2
 #' mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
@@ -33,6 +37,7 @@ setGeneric("mHSim", function(object, ...) standardGeneric("mHSim"))
 #' # Simulate with mHSim function.
 #' LAMBDA0 <- matrix(c(0.1, 0.1, 0.1, 0.1), nrow = 2, byrow=TRUE)
 #' res2 <- mHSim(mHSpec2, LAMBDA0 = LAMBDA, n = 100)
+#' class(res2)
 #' summary(res2)
 #' as.matrix(res2)
 setMethod(
@@ -169,3 +174,38 @@ setMethod(
     return(realization)
   }
 )
+
+setMethod(
+  "mHSim",
+  signature("missing"),
+  function(object, dimens = 1, n = 1000) {
+    # default values
+
+      if (dimens == 1){
+      MU1 <- 0.2
+      ALPHA1 <- 1.5
+      BETA1 <- 2
+
+      mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+
+      mHSim(mHSpec1, n =n)
+
+    } else if (dimens == 2){
+
+      MU2 <- matrix(c(0.2), nrow = 2)
+      ALPHA2 <- matrix(c(0.7, 0.9, 0.9, 0.7), nrow = 2, byrow=TRUE)
+      BETA2 <- matrix(c(2, 2, 2, 2), nrow = 2, byrow=TRUE)
+
+      mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2)
+      mHSim(mHSpec2, n = n)
+
+    } else {
+
+      stop("One or two dimesinoal models is supported for default simulation.")
+    }
+
+
+  }
+
+)
+

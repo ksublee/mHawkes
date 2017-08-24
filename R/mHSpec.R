@@ -1,7 +1,4 @@
-#'
 setClassUnion("matrixORnumeric", c("matrix", "numeric"))
-
-
 
 #' Check the validity of mHSpec
 #'
@@ -125,12 +122,10 @@ setMethod(
 
     # If ETA is not provided, then ETA = 0 or zero matrix with the same dimension of BETA
     if (is.null(ETA)) {
-      if (length(MU) == 1) ETA <- 0
-      else {
-        if (is.atomic(MU))
-          ETA <- 0
-        else
-          ETA <- matrix(rep(0, length(BETA)), nrow = length(MU))
+      if (length(MU) == 1){
+        ETA <- 0
+      } else {
+        ETA <- matrix(rep(0, length(BETA)), nrow = length(MU))
       }
     }
 

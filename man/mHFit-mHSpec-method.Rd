@@ -5,9 +5,10 @@
 \alias{mHFit,mHSpec-method}
 \title{Perform a maximum likelihood estimation}
 \usage{
-\S4method{mHFit}{mHSpec}(object, inter_arrival, jump_type = NULL,
-  mark = NULL, LAMBDA0 = NULL, llh_fun = NULL, grad = NULL,
-  hess = NULL, constraint = NULL, method = "BFGS", ...)
+\S4method{mHFit}{mHSpec}(object, arrival = NULL, inter_arrival = NULL,
+  N = NULL, jump_type = NULL, mark = NULL, LAMBDA0 = NULL,
+  llh_fun = NULL, grad = NULL, hess = NULL, constraint = NULL,
+  method = "BFGS", ...)
 }
 \arguments{
 \item{inter_arrival}{Inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.}
@@ -37,4 +38,17 @@ res1 <- mHSim(mHSpec1,  n=5000)
 mHSpec0 <- new("mHSpec", MU=0.2, ALPHA=1.2, BETA=1.8)
 mle <- mHFit(mHSpec0, inter_arrival = res1$inter_arrival)
 summary(mle)
+
+MU2 <- matrix(c(0.2), nrow = 2)
+ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
+BETA2 <- matrix(c(2.90, 2.90, 2.90, 2.90), nrow = 2, byrow=TRUE)
+ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
+JUMP2 <- function(n,...) rgeom(n, 0.65) + 1
+mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+res2 <- mHSim(mHSpec2)
+
+# Perform maximum likelihood estimation
+summary(mHFit(mHSpec2, arrival = res2$arrival, N = res2$N))
+summary(mHFit(mHSpec2, inter_arrival = res2$inter_arrival, mark = res2$mark2, jump_type = res2$jump_type))
+summary(mHFit(arrival = res2$arrival, N = res2$N))
 }

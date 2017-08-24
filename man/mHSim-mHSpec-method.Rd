@@ -21,6 +21,10 @@ It returns an object of class 'mHreal'.
 }
 \examples{
 # example for one dimensional Hawkes process (without mark)
+# Simple simulation for example
+mHSim()
+mHSim(dimens = 2)
+
 # Define the model.
 MU1 <- 0.3; ALPHA1 <- 1.5; BETA1 <- 2
 mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
@@ -40,6 +44,7 @@ mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2
 # Simulate with mHSim function.
 LAMBDA0 <- matrix(c(0.1, 0.1, 0.1, 0.1), nrow = 2, byrow=TRUE)
 res2 <- mHSim(mHSpec2, LAMBDA0 = LAMBDA, n = 100)
+class(res2)
 summary(res2)
 as.matrix(res2)
 }

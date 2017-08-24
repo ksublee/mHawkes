@@ -7,13 +7,13 @@
 get_lc_lambda(res)
 }
 \arguments{
-\item{res}{\code{mHreal} an S3 class contains the realized lambda processes.}
+\item{res}{\code{mHReal} an S3 class contains the realized lambda processes.}
 }
 \value{
 The left continuous version of lambda components as a matrix.
 }
 \description{
-The realized version of the lambda process in \code{mHreal} is right continuous version.
+The realized version of the lambda process in \code{mHReal} is right continuous version.
 If the left continuous version is needed, this function is applied.
 }
 \examples{

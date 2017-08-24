@@ -1,6 +1,28 @@
-print.mHReal <- function(res, n=10){
-  cat(".........\n")
-  print.default(res)
+print.mHReal <- function(res, n=20){
+  cat("------------------------------------------\n")
+  cat("Simulation result of marked Hawkes model.\n")
+  print(res$mHSpec)
+
+  cat("Realized path (with right continuous representation):\n")
+  mtrx <- as.matrix(res)
+  dimens <- length(res$mHSpec@MU)
+  name_N  <- paste0("N", 1:dimens)
+  name_lambda  <- paste0("lambda", 1:dimens)
+  name_lambda_component <- colnames(res$lambda_component)
+
+  len <- min(n, length(mtrx[,"arrival"]))
+
+  print(mtrx[1:len, c("arrival", name_N, name_lambda, name_lambda_component)])
+  if ( length(mtrx[,"arrival"]) > len){
+
+    remaning <- length(mtrx[,"arrival"]) - len
+
+    cat("... with ")
+    cat(remaning)
+    cat(" more rows \n")
+  }
+
+  cat("------------------------------------------\n")
 }
 
 
@@ -24,7 +46,7 @@ summary.mHReal <- function(res, n=20){
 
   cat("------------------------------------------\n")
   cat("Simulation result of marked Hawkes model.\n")
-  cat("Realized path:\n")
+  cat("Realized path (with right continuous representation):\n")
   mtrx <- as.matrix(res)
   dimens <- length(res$mHSpec@MU)
   name_N  <- paste0("N", 1:dimens)

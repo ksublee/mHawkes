@@ -146,21 +146,62 @@ setGeneric("mHFit", function(object, ...) standardGeneric("mHFit"))
 #' mHSpec0 <- new("mHSpec", MU=0.2, ALPHA=1.2, BETA=1.8)
 #' mle <- mHFit(mHSpec0, inter_arrival = res1$inter_arrival)
 #' summary(mle)
+#'
+#' MU2 <- matrix(c(0.2), nrow = 2)
+#' ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
+#' BETA2 <- matrix(c(2.90, 2.90, 2.90, 2.90), nrow = 2, byrow=TRUE)
+#' ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
+#' JUMP2 <- function(n,...) rgeom(n, 0.65) + 1
+#' mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+#' res2 <- mHSim(mHSpec2)
+#'
+#' # Perform maximum likelihood estimation
+#' summary(mHFit(mHSpec2, arrival = res2$arrival, N = res2$N))
+#' summary(mHFit(mHSpec2, inter_arrival = res2$inter_arrival, mark = res2$mark2, jump_type = res2$jump_type))
+#' summary(mHFit(arrival = res2$arrival, N = res2$N))
 setMethod(
   f="mHFit",
   signature(object="mHSpec"),
-  function(object, inter_arrival, jump_type = NULL, mark = NULL, LAMBDA0 = NULL, llh_fun = NULL,
+  function(object, arrival = NULL, inter_arrival = NULL, N = NULL,
+           jump_type = NULL, mark = NULL, LAMBDA0 = NULL, llh_fun = NULL,
           grad = NULL, hess = NULL, constraint = NULL, method = "BFGS",  ...){
 
-    # When the mark sizes are not provided, the jumps are all unit jumps.
+    # dimension of Hawkes process
+    dimens <- length(object@MU)
+
+    # argument check
+    if(is.null(arrival) & is.null(inter_arrival)){
+      stop("One of arrival and inter_arrival should be provided.")
+    } else if(is.null(inter_arrival)){
+      inter_arrival <- c(0, arrival[-1] - arrival[-length(arrival)])
+    }
+
+    # argument check
+    if(dimens != 1 & is.null(N) & is.null(jump_type)){
+      stop("One of N and jump_type should be provided.")
+    } else if(is.null(jump_type)){
+
+      if(!is.matrix(N)) N <- matrix(N, nrow = length(N))
+
+      jump_type <- numeric(nrow(N))
+      mark <- numeric(nrow(N))
+
+      for (i in 2:nrow(N)){
+        jump_type[i] <- which(N[i,] != N[i-1,])
+        mark[i] <- N[i, jump_type[i]] - N[i-1, jump_type[i]]
+      }
+
+    }
+
+
+    # When the mark sizes are not provided or max(mark) == 1, the jumps are all unit jumps.
     unit <- FALSE
-    if(is.null(mark)) {
+    if(is.null(mark) | max(mark) == 1) {
       mark <- c(0, rep(1, length(inter_arrival)-1))
       unit <- TRUE
     }
 
-    # dimension of Hawkes process
-    dimens <- length(object@MU)
+
 
     # parameter setting
     MU <- matrix(object@MU, nrow=dimens)
@@ -270,11 +311,86 @@ setMethod(
       }
     }
 
-
-    mle<-maxLik::maxLik(logLik=llh_fun,
-                        start=starting_point, grad, hess, constraint, method = method)
+    maxLik::maxLik(logLik=llh_fun,
+                    start=starting_point, grad, hess, constraint, method = method)
 
   }
 )
 
 
+setMethod(
+  f="mHFit",
+  signature(object="missing"),
+  function(object, arrival = NULL, inter_arrival = NULL, N = NULL,
+           jump_type = NULL, mark = NULL, ...){
+
+
+    # argument check
+    if(is.null(arrival) & is.null(inter_arrival)){
+      stop("One of arrival and inter_arrival should be provided.")
+    } else if(is.null(inter_arrival)){
+      inter_arrival <- c(0, arrival[-1] - arrival[-length(arrival)])
+    }
+
+
+
+    # argument check
+    if(is.null(N) & is.null(jump_type)){
+
+      #assuming one dimensional model
+      dimens <- 1
+
+
+    } else if(is.null(jump_type)){
+
+      if(!is.matrix(N)) N <- matrix(N, nrow = length(N))
+
+      jump_type <- numeric(nrow(N))
+      mark <- numeric(nrow(N))
+
+      for (i in 2:nrow(N)){
+        jump_type[i] <- which(N[i,] != N[i-1,])
+        mark[i] <- N[i, jump_type[i]] - N[i-1, jump_type[i]]
+      }
+
+      dimens <- ncol(N)
+
+    } else if(is.null(N)){
+
+      dimens <- max(jump_type)
+    }
+
+    if(dimens != 1 & dimens !=2 ){
+      stop("One or two dimesinoal models is supported for default estimation.")
+    }
+
+
+    # set default mHSpec0
+    if (dimens ==1 ){
+
+      MU1 <- 0.2
+      ALPHA1 <- 1.0
+      BETA1 <- 2
+      ETA1 <- 0
+
+      mHSpec0 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1)
+
+    } else if(dimens == 2){
+
+      MU2 <- matrix(c(0.2), nrow = 2)
+      ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
+      BETA2 <- matrix(c(2.90, 2.90, 2.90, 2.90), nrow = 2, byrow=TRUE)
+      ETA2 <- matrix(c(0, 0, 0, 0), nrow = 2, byrow=TRUE)
+
+      mHSpec0 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2)
+    }
+
+    if (is.null(mark)){
+      mark <- rep(1, length(inter_arrival))
+      mark[1] <- 0
+    }
+
+    mHFit(mHSpec0, inter_arrival = inter_arrival, jump_type = jump_type, mark = mark)
+
+  }
+)
