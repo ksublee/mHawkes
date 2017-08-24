@@ -21,7 +21,7 @@ To install ```mHawkes``` package, first install ```devtools```.
 Install ```mHawkes``` package from github.
 
 ```{r, eval=FALSE}
-#devtools::install_github("ksublee/mHawkes", build_vignettes=FALSE)
+devtools::install_github("ksublee/mHawkes", build_vignettes=TRUE)
 ```
 
 Load ```mHawkes```.
