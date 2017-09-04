@@ -2,7 +2,7 @@ Package: mHawkes
 Type: Package
 Title: Simulate and estimate marked Hawkes process
 Version: 0.2.0
-Authors@R : person("Kyungsub", "Lee", email = "ksublee@yu.ac.kr",
+Authors@R: person("Kyungsub", "Lee", email = "ksublee@yu.ac.kr",
                   role = c("aut", "cre"))
 Maintainer: The package maintainer <ksublee@yu.ac.kr>
 Description: More about what it does (maybe more than one line)

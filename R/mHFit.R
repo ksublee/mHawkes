@@ -4,6 +4,7 @@
 #' The loglikelihood of the ground process of the Hawkes model.
 #' (The estimation for jump distribution is not provided.)
 #'
+#' @param object \code{\link{mHSpec-class}}. The parameter values in the object are used to compute the log-likelihood.
 #' @param inter_arrival Inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.
 #' @param jump_type a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.
 #' @param mark a vector of mark (jump) sizes. Start with zero.
@@ -131,13 +132,18 @@ setGeneric("mHFit", function(object, ...) standardGeneric("mHFit"))
 #'
 #'
 #' @param object mHSpec, or can be omitted.
-#' @param inter_arrival Inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.
+#' @param arrival arrival times of events and hence monotonically increases. Includes inter-arrival for events that occur in all dimensions. Start with zero.
+#' @param inter_arrival inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.
 #' @param jump_type a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.
 #' @param mark a vector of mark (jump) sizes. Start with zero.
-#' @param LAMBDA0 The starting values of lambda. Must have the same dimensional matrix (n by n) with mHSpec.
+#' @param N a realization of n-dimensional Hawkes process.
+#' @param LAMBDA0 the starting values of lambda. Must have the same dimensional matrix (n by n) with mHSpec.
 #' @param llh_fun user provided log-likelihood function.
 #' @param constraint constraint matrix. For more information, see \code{\link[maxLik]{maxLik}}.
 #' @param method method for optimization. For more information, see \code{\link[maxLik]{maxLik}}.
+#' @param gard gradient matrix for the likelihood function. For more information, see \code{\link[maxLik]{maxLik}}.
+#' @param hess Hessian matrix for the likelihood function. For more information, see \code{\link[maxLik]{maxLik}}.
+#' @param ... other parameters for optimization. For more information, see \code{\link[maxLik]{maxLik}}.
 #'
 #' @examples
 #' # Generate sample path
@@ -175,6 +181,7 @@ setMethod(
     # dimension of Hawkes process
     dimens <- length(object@MU)
 
+
     # argument check
     if(is.null(arrival) & is.null(inter_arrival)){
       stop("One of arrival and inter_arrival should be provided.")
@@ -199,6 +206,9 @@ setMethod(
 
     }
 
+    if(is.null(LAMBDA0)){
+      warning("The initial values for intensity processes are not provided. Internally determined initial values are set.\n")
+    }
 
     # When the mark sizes are not provided or max(mark) == 1, the jumps are all unit jumps.
     unit <- FALSE

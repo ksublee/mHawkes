@@ -37,5 +37,5 @@ BETA2 <- matrix(c(2.90, 2.90, 2.90, 2.90), nrow = 2, byrow=TRUE)
 ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
 JUMP2 <- function(n,...) rgeom(n, 0.7) + 1
 mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
-mHVar(mHSpec2, 1)
+var_diff(mHSpec2, 1)
 }

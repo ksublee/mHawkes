@@ -1,3 +1,9 @@
+#' Print function for mHReal
+#'
+#' Print the summary of the realization of the Haweks model.
+#'
+#' @param res S3-object of mHReal
+#' @param n number of rows to diplay
 print.mHReal <- function(res, n=20){
   cat("------------------------------------------\n")
   cat("Simulation result of marked Hawkes model.\n")
@@ -25,7 +31,11 @@ print.mHReal <- function(res, n=20){
   cat("------------------------------------------\n")
 }
 
-
+#' Matrix represetation of mHReal
+#'
+#' The realization of Hawkes model is represented by matrix like ouput.
+#'
+#' @param res S3-object of mHReal
 as.matrix.mHReal <- function(res){
 
   mtrx <- numeric()
@@ -38,10 +48,21 @@ as.matrix.mHReal <- function(res){
   mtrx
 }
 
+#' Dataframe represetation of mHReal
+#'
+#' The realization of Hawkes model is represented by dataframe like ouput.
+#'
+#' @param res S3-object of mHReal
 as.data.frame.mHReal <- function(res){
   as.data.frame(as.matrix(res))
 }
 
+#' Summary function fo mHReal
+#'
+#' This function presents the summary of the Hawkes realization.
+#'
+#' @param res S3-object of mHReal
+#' @param n number of rows to diplay
 summary.mHReal <- function(res, n=20){
 
   cat("------------------------------------------\n")

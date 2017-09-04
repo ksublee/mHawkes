@@ -2,23 +2,24 @@
 
 setGeneric("mHSim", function(object, ...) standardGeneric("mHSim"))
 
-#' Simulate an n-dimensional marked Hawkes process
+#' Simulate an n-dimensional (marked) Hawkes process
 #'
-#' This is a generic function.
+#' The method simulate n-dimensional marked Hawkes processes.
+#' The object \code{\link{mHSpec-class}} contains the parameter values such as alpha, beta, eta.
 #' The mark (jump) structure may or may not be included.
 #' It returns an object of class 'mHreal'.
 #'
-#' @param object mHSpec
-#' @param LAMBDA0 The starting values of lambda. Must have the same dimensional matrix (n by n) with mHSpec.
-#' @param n The number of observations.
+#' @param object \code{\link{mHSpec-class}}. This object includes the parameter values.
+#' @param LAMBDA0 the starting values of lambda (intensity process). Must have the same dimensional matrix (n by n) with the parameters in mHSpec.
+#' @param n the number of observations.
 #'
 #' @examples
-#' # example for one dimensional Hawkes process (without mark)
+#' # Example for one dimensional Hawkes process (without mark)
 #' # Simple simulation for example
 #' mHSim()
 #' mHSim(dimens = 2)
 #'
-#' # Define the model.
+#' # Define a one-dimensional model.
 #' MU1 <- 0.3; ALPHA1 <- 1.5; BETA1 <- 2
 #' mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
 #' # Simulate with mHSim funciton.
@@ -26,8 +27,8 @@ setGeneric("mHSim", function(object, ...) standardGeneric("mHSim"))
 #' summary(res1)
 #' as.matrix(res1)
 #'
-#' # example for two dimensional Hawkes process
-#' # Define the model.
+#' # Example for two dimensional Hawkes process
+#' # Define a two-dimensional model.
 #' MU2 <- matrix(c(0.2), nrow = 2)
 #' ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
 #' BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow=TRUE)
@@ -36,7 +37,7 @@ setGeneric("mHSim", function(object, ...) standardGeneric("mHSim"))
 #' mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
 #' # Simulate with mHSim function.
 #' LAMBDA0 <- matrix(c(0.1, 0.1, 0.1, 0.1), nrow = 2, byrow=TRUE)
-#' res2 <- mHSim(mHSpec2, LAMBDA0 = LAMBDA, n = 100)
+#' res2 <- mHSim(mHSpec2, LAMBDA0 = LAMBDA0, n = 100)
 #' class(res2)
 #' summary(res2)
 #' as.matrix(res2)
@@ -67,11 +68,12 @@ setMethod(
 
     # default LAMBDA0
     if(is.null(LAMBDA0)) {
+      warning("The initial values for intensity processes are not provided. Internally determined initial values are set.\n")
 
       if (dimens == 1){
+        #default LAMBDA0 with dimesion 1
         LAMBDA0 <- (MU * BETA / (BETA - ALPHA) - MU) / 2
       } else if (dimens == 2) {
-
         #default LAMBDA0 with dimesion 2
         LAMBDA0 <- matrix(rep(0, dimens^2), nrow=dimens)
 
@@ -82,15 +84,12 @@ setMethod(
         LAMBDA0[2, 1] <- ALPHA[2,1]*BETA[1,1]* ((BETA[2,2] - ALPHA[2,2])*BETA[1,2]*MU[1] + ALPHA[1,2]*BETA[2,2]*MU[2]) / H
         LAMBDA0[2, 2] <- ALPHA[2,2]*BETA[1,2]* ((BETA[1,1] - ALPHA[1,1])*BETA[2,1]*MU[2] + ALPHA[2,1]*BETA[1,1]*MU[1]) / H
 
-
       } else {
         # for higher dimension, default LAMBDA0 will be ...
         lamb0 <- (MU[1]*BETA[1]/(BETA[1]- sum(ALPHA[1:dimens])) - MU[1])/2
         LAMBDA0 <- matrix(rep(lamb0, dimens^2), nrow=dimens, byrow=TRUE)
       }
     }
-
-    # We need an appropriate algorithm for buffer size n.
 
     # Preallocation for lambdas and Ns and set initial values for lambdas
     lambda_component <- matrix(sapply(LAMBDA0, c, numeric(length = n - 1)), ncol = dimens^2)

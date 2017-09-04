@@ -9,6 +9,8 @@
   mark = NULL, LAMBDA0 = NULL)
 }
 \arguments{
+\item{object}{\code{\link{mHSpec-class}}. The parameter values in the object are used to compute the log-likelihood.}
+
 \item{inter_arrival}{Inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.}
 
 \item{jump_type}{a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.}

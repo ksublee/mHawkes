@@ -3,29 +3,30 @@
 \docType{methods}
 \name{mHSim,mHSpec-method}
 \alias{mHSim,mHSpec-method}
-\title{Simulate an n-dimensional marked Hawkes process}
+\title{Simulate an n-dimensional (marked) Hawkes process}
 \usage{
 \S4method{mHSim}{mHSpec}(object, LAMBDA0 = NULL, n = 1000)
 }
 \arguments{
-\item{object}{mHSpec}
+\item{object}{\code{\link{mHSpec-class}}. This object includes the parameter values.}
 
-\item{LAMBDA0}{The starting values of lambda. Must have the same dimensional matrix (n by n) with mHSpec.}
+\item{LAMBDA0}{the starting values of lambda (intensity process). Must have the same dimensional matrix (n by n) with the parameters in mHSpec.}
 
-\item{n}{The number of observations.}
+\item{n}{the number of observations.}
 }
 \description{
-This is a generic function.
+The method simulate n-dimensional marked Hawkes processes.
+The object \code{\link{mHSpec-class}} contains the parameter values such as alpha, beta, eta.
 The mark (jump) structure may or may not be included.
 It returns an object of class 'mHreal'.
 }
 \examples{
-# example for one dimensional Hawkes process (without mark)
+# Example for one dimensional Hawkes process (without mark)
 # Simple simulation for example
 mHSim()
 mHSim(dimens = 2)
 
-# Define the model.
+# Define a one-dimensional model.
 MU1 <- 0.3; ALPHA1 <- 1.5; BETA1 <- 2
 mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
 # Simulate with mHSim funciton.
@@ -33,8 +34,8 @@ res1 <- mHSim(mHSpec1,  n=100)
 summary(res1)
 as.matrix(res1)
 
-# example for two dimensional Hawkes process
-# Define the model.
+# Example for two dimensional Hawkes process
+# Define a two-dimensional model.
 MU2 <- matrix(c(0.2), nrow = 2)
 ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
 BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow=TRUE)
@@ -43,7 +44,7 @@ JUMP2 <- function(n,...) rgeom(n, 0.65) + 1   # mark size follows a geometric di
 mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
 # Simulate with mHSim function.
 LAMBDA0 <- matrix(c(0.1, 0.1, 0.1, 0.1), nrow = 2, byrow=TRUE)
-res2 <- mHSim(mHSpec2, LAMBDA0 = LAMBDA, n = 100)
+res2 <- mHSim(mHSpec2, LAMBDA0 = LAMBDA0, n = 100)
 class(res2)
 summary(res2)
 as.matrix(res2)
