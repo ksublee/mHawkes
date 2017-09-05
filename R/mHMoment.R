@@ -4,13 +4,13 @@ setGeneric("mean_lambda", function(object, ...) standardGeneric("mean_lambda"))
 #'
 #' This method only works for a one-dimensional or two-dimensional symmetric model.
 #'
-#' @param object mHSpec, a one-dimensional or two-dimensional symmetricl model
+#' @param object mhspec, a one-dimensional or two-dimensional symmetricl model
 #' @param mean_jump the mean of jump distribution. If not specified, simulated mean value will be used.
 #' @param sample_size the number of simulation to compute the mean of jump and squared jump
 #' @param seed_value seed for random number generation.
 setMethod(
   f = "mean_lambda",
-  signature(object = "mHSpec"),
+  signature(object = "mhspec"),
   definition = function(object, mean_jump = NULL, sample_size = 10000, seed_value = 903){
 
     dimens <- length(object@MU)
@@ -68,7 +68,7 @@ setGeneric("var_diff", function(object, ...) standardGeneric("var_diff"))
 #' This method is useful in quantitative finance and financial econometics.
 #'
 #'
-#' @param object mHSpec a two dimensional symmetricl model
+#' @param object mhspec a two dimensional symmetricl model
 #' @param time_length time horizon
 #' @param mean_jump the mean of jump distribution. If not specified, simulated mean value will be used.
 #' @param mean_jump_square the mean of the square of jump distribution. If not specified, simulated value will be used.
@@ -82,11 +82,11 @@ setGeneric("var_diff", function(object, ...) standardGeneric("var_diff"))
 #' BETA2 <- matrix(c(2.90, 2.90, 2.90, 2.90), nrow = 2, byrow=TRUE)
 #' ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
 #' JUMP2 <- function(n,...) rgeom(n, 0.7) + 1
-#' mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
-#' var_diff(mHSpec2, 1)
+#' mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+#' var_diff(mhspec2, 1)
 setMethod(
   f = "var_diff",
-  signature(object = "mHSpec"),
+  signature(object = "mhspec"),
   definition = function(object, time_length, mean_jump = NULL, mean_jump_square = NULL, sample_size = 10000, seed_value = 903){
 
     dimens <- length(object@MU)

@@ -1,17 +1,17 @@
-#' Print function for mHReal
+#' Print function for mhreal
 #'
 #' Print the summary of the realization of the Haweks model.
 #'
-#' @param res S3-object of mHReal
+#' @param res S3-object of mhreal
 #' @param n number of rows to diplay
-print.mHReal <- function(res, n=20){
+print.mhreal <- function(res, n=20){
   cat("------------------------------------------\n")
   cat("Simulation result of marked Hawkes model.\n")
-  print(res$mHSpec)
+  print(res$mhspec)
 
   cat("Realized path (with right continuous representation):\n")
   mtrx <- as.matrix(res)
-  dimens <- length(res$mHSpec@MU)
+  dimens <- length(res$mhspec@MU)
   name_N  <- paste0("N", 1:dimens)
   name_lambda  <- paste0("lambda", 1:dimens)
   name_lambda_component <- colnames(res$lambda_component)
@@ -31,12 +31,12 @@ print.mHReal <- function(res, n=20){
   cat("------------------------------------------\n")
 }
 
-#' Matrix represetation of mHReal
+#' Matrix represetation of mhreal
 #'
 #' The realization of Hawkes model is represented by matrix like ouput.
 #'
-#' @param res S3-object of mHReal
-as.matrix.mHReal <- function(res){
+#' @param res S3-object of mhreal
+as.matrix.mhreal <- function(res){
 
   mtrx <- numeric()
   for (i in 2:length(res)){
@@ -48,28 +48,28 @@ as.matrix.mHReal <- function(res){
   mtrx
 }
 
-#' Dataframe represetation of mHReal
+#' Dataframe represetation of mhreal
 #'
 #' The realization of Hawkes model is represented by dataframe like ouput.
 #'
-#' @param res S3-object of mHReal
-as.data.frame.mHReal <- function(res){
+#' @param res S3-object of mhreal
+as.data.frame.mhreal <- function(res){
   as.data.frame(as.matrix(res))
 }
 
-#' Summary function fo mHReal
+#' Summary function fo mhreal
 #'
 #' This function presents the summary of the Hawkes realization.
 #'
-#' @param res S3-object of mHReal
+#' @param res S3-object of mhreal
 #' @param n number of rows to diplay
-summary.mHReal <- function(res, n=20){
+summary.mhreal <- function(res, n=20){
 
   cat("------------------------------------------\n")
   cat("Simulation result of marked Hawkes model.\n")
   cat("Realized path (with right continuous representation):\n")
   mtrx <- as.matrix(res)
-  dimens <- length(res$mHSpec@MU)
+  dimens <- length(res$mhspec@MU)
   name_N  <- paste0("N", 1:dimens)
   name_lambda  <- paste0("lambda", 1:dimens)
 
@@ -90,28 +90,28 @@ summary.mHReal <- function(res, n=20){
 
 #' Get left continuous version of lambda process
 #'
-#' The realized version of the lambda process in \code{mHReal} is right continuous version.
+#' The realized version of the lambda process in \code{mhreal} is right continuous version.
 #' If the left continuous version is needed, this function is applied.
 #'
-#' @param res \code{mHReal} an S3 class contains the realized lambda processes.
+#' @param res \code{mhreal} an S3 class contains the realized lambda processes.
 #' @return The left continuous version of lambda components as a matrix.
 #'
 #' @examples
 #' # Define the model.
 #' MU1 <- 0.3; ALPHA1 <- 1.5; BETA1 <- 2
-#' mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
-#' # Simulate with mHSim funciton.
-#' res1 <- mHSim(mHSpec1,  n=100)
+#' mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+#' # Simulate with mhsim funciton.
+#' res1 <- mhsim(mhspec1,  n=100)
 #' get_lc_lambda(res1)
 get_lc_lambda <- function(res){
 
-  dimens <- length(res$mHSpec@MU)
+  dimens <- length(res$mhspec@MU)
   lc_lambda_component <- res$lambda_component
 
   for (i in 2:nrow(lc_lambda_component)) {
 
     if (dimens == 1) {
-      impact <- res$mHSpec@ALPHA * ( 1 + (res$mark[i] - 1 ) * res$mHSpec@ETA )
+      impact <- res$mhspec@ALPHA * ( 1 + (res$mark[i] - 1 ) * res$mhspec@ETA )
       print(impact)
       lc_lambda_component[i] <- lc_lambda_component[i] - impact
 
@@ -119,7 +119,7 @@ get_lc_lambda <- function(res){
 
       col_indx <- seq(res$jump_type[i], dimens^2, dimens)
       lc_lambda_component[i, col_indx] <- lc_lambda_component[i, col_indx] -
-        res$mHSpec@ALPHA[, res$jump_type[i]] * ( 1 + (res$mark[i] - 1 ) * res$mHSpec@ETA[, res$jump_type[i]])
+        res$mhspec@ALPHA[, res$jump_type[i]] * ( 1 + (res$mark[i] - 1 ) * res$mhspec@ETA[, res$jump_type[i]])
 
     }
 
@@ -130,7 +130,7 @@ get_lc_lambda <- function(res){
 }
 
 
-plot.mHReal <- function(res, ...){
+plot.mhreal <- function(res, ...){
 
   dimens <- ncol(res$N)
   par(mfrow=c(dimens, 1))
@@ -158,9 +158,9 @@ plot.mHReal <- function(res, ...){
 #'
 #' @examples
 #' MU1 <- 0.3; ALPHA1 <- 1.5; BETA1 <- 2
-#' mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
-#' # Simulate with mHSim funciton.
-#' res1 <- mHSim(mHSpec1,  n=100)
+#' mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+#' # Simulate with mhsim funciton.
+#' res1 <- mhsim(mhspec1,  n=100)
 #' dl <- dense_lambda(res1$arrival, res1$lambda, BETA1)
 dense_lambda <- function(arrival, lambda, beta, dt = NULL, ...){
   maxT <- tail(arrival, n=1)
@@ -206,9 +206,9 @@ dense_lambda <- function(arrival, lambda, beta, dt = NULL, ...){
 #'
 #' @examples
 #' MU1 <- 0.3; ALPHA1 <- 1.5; BETA1 <- 2
-#' mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
-#' # Simulate with mHSim funciton.
-#' res1 <- mHSim(mHSpec1,  n=100)
+#' mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+#' # Simulate with mhsim funciton.
+#' res1 <- mhsim(mhspec1,  n=100)
 #' plot_lambda(res1$arrival, res1$lambda, BETA1)
 plot_lambda <- function(arrival, lambda, beta, dt = NULL, ...){
 

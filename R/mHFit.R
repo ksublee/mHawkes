@@ -4,29 +4,29 @@
 #' The loglikelihood of the ground process of the Hawkes model.
 #' (The estimation for jump distribution is not provided.)
 #'
-#' @param object \code{\link{mHSpec-class}}. The parameter values in the object are used to compute the log-likelihood.
+#' @param object \code{\link{mhspec-class}}. The parameter values in the object are used to compute the log-likelihood.
 #' @param inter_arrival Inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.
 #' @param jump_type a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.
 #' @param mark a vector of mark (jump) sizes. Start with zero.
-#' @param LAMBDA0 The starting values of lambda. Must have the same dimensional matrix (n by n) with \code{mHSpec}.
+#' @param LAMBDA0 The starting values of lambda. Must have the same dimensional matrix (n by n) with \code{mhspec}.
 #'
 #' @examples
-#' # construct a mHSpec
+#' # construct a mhspec
 #' MU1 <- 0.2; ALPHA1 <- 1.0; BETA1 <- 2; ETA1 <- 0.2
 #' JUMP1 <- function(n,...) rgeom(n, 0.7) + 1
-#' mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1, Jump =JUMP1)
+#' mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1, Jump =JUMP1)
 #' # simualte a path
-#' res1 <- mHSim(mHSpec1,  LAMBDA0 = MU1, n=1000)
+#' res1 <- mhsim(mhspec1,  LAMBDA0 = MU1, n=1000)
 #' inter_arrival <- res1$inter_arrival
 #' mark <- res1$mark
-#' # compute a loglikelihood function with parameter values in mHSpec1
+#' # compute a loglikelihood function with parameter values in mhspec1
 #' # LAMBDA0 = MU1 is a naive way of starting point choice.
-#' logLik(mHSpec1, LAMBDA0 = MU1, inter_arrival = inter_arrival, mark = mark)
+#' logLik(mhspec1, LAMBDA0 = MU1, inter_arrival = inter_arrival, mark = mark)
 #'
-#' @seealso \code{\link{mHSpec-class}}, \code{\link{mHFit,mHSpec-method}}
+#' @seealso \code{\link{mhspec-class}}, \code{\link{mhfit,mhspec-method}}
 setMethod(
   f="logLik",
-  signature(object="mHSpec"),
+  signature(object="mhspec"),
   function(object, inter_arrival, jump_type=NULL, mark=NULL, LAMBDA0=NULL){
 
     # When the mark sizes are not provided, the jumps are all unit jumps
@@ -124,20 +124,20 @@ setMethod(
 )
 
 
-setGeneric("mHFit", function(object, ...) standardGeneric("mHFit"))
+setGeneric("mhfit", function(object, ...) standardGeneric("mhfit"))
 
 #' Perform a maximum likelihood estimation
 #'
 #' This function uses \code{\link[maxLik]{maxLik}} for the optimizer.
 #'
 #'
-#' @param object mHSpec, or can be omitted.
+#' @param object mhspec, or can be omitted.
 #' @param arrival arrival times of events and hence monotonically increases. Includes inter-arrival for events that occur in all dimensions. Start with zero.
 #' @param inter_arrival inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.
 #' @param jump_type a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.
 #' @param mark a vector of mark (jump) sizes. Start with zero.
 #' @param N a realization of n-dimensional Hawkes process.
-#' @param LAMBDA0 the starting values of lambda. Must have the same dimensional matrix (n by n) with mHSpec.
+#' @param LAMBDA0 the starting values of lambda. Must have the same dimensional matrix (n by n) with mhspec.
 #' @param llh_fun user provided log-likelihood function.
 #' @param constraint constraint matrix. For more information, see \code{\link[maxLik]{maxLik}}.
 #' @param method method for optimization. For more information, see \code{\link[maxLik]{maxLik}}.
@@ -148,12 +148,12 @@ setGeneric("mHFit", function(object, ...) standardGeneric("mHFit"))
 #' @examples
 #' # Generate sample path
 #' MU1 <- 0.3; ALPHA1 <- 1.5; BETA1 <- 2
-#' mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
-#' res1 <- mHSim(mHSpec1,  n=5000)
+#' mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+#' res1 <- mhsim(mhspec1,  n=5000)
 #'
-#' # Perform maximum likelihood estimation with a starting point defined by mHSpec0.
-#' mHSpec0 <- new("mHSpec", MU=0.2, ALPHA=1.2, BETA=1.8)
-#' mle <- mHFit(mHSpec0, inter_arrival = res1$inter_arrival)
+#' # Perform maximum likelihood estimation with a starting point defined by mhspec0.
+#' mhspec0 <- new("mhspec", MU=0.2, ALPHA=1.2, BETA=1.8)
+#' mle <- mhfit(mhspec0, inter_arrival = res1$inter_arrival)
 #' summary(mle)
 #'
 #' MU2 <- matrix(c(0.2), nrow = 2)
@@ -161,19 +161,19 @@ setGeneric("mHFit", function(object, ...) standardGeneric("mHFit"))
 #' BETA2 <- matrix(c(2.90, 2.90, 2.90, 2.90), nrow = 2, byrow=TRUE)
 #' ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
 #' JUMP2 <- function(n,...) rgeom(n, 0.65) + 1
-#' mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
-#' res2 <- mHSim(mHSpec2)
+#' mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+#' res2 <- mhsim(mhspec2)
 #'
 #' # Perform maximum likelihood estimation
-#' summary(mHFit(mHSpec2, arrival = res2$arrival, N = res2$N))
-#' summary(mHFit(mHSpec2, inter_arrival = res2$inter_arrival,
+#' summary(mhfit(mhspec2, arrival = res2$arrival, N = res2$N))
+#' summary(mhfit(mhspec2, inter_arrival = res2$inter_arrival,
 #'         mark = res2$mark2, jump_type = res2$jump_type))
-#' summary(mHFit(arrival = res2$arrival, N = res2$N))
+#' summary(mhfit(arrival = res2$arrival, N = res2$N))
 #'
-#' @seealso \code{\link{mHSpec-class}}, \code{\link{mHSim,mHSpec-method}}
+#' @seealso \code{\link{mhspec-class}}, \code{\link{mhsim,mhspec-method}}
 setMethod(
-  f="mHFit",
-  signature(object="mHSpec"),
+  f="mhfit",
+  signature(object="mhspec"),
   function(object, arrival = NULL, inter_arrival = NULL, N = NULL,
            jump_type = NULL, mark = NULL, LAMBDA0 = NULL, llh_fun = NULL,
           grad = NULL, hess = NULL, constraint = NULL, method = "BFGS",  ...){
@@ -318,10 +318,10 @@ setMethod(
           }
         }
 
-        mHSpec0 <- new("mHSpec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, Jump=object@Jump)
+        mhspec0 <- new("mhspec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, Jump=object@Jump)
 
 
-        llh <- logLik(mHSpec0, inter_arrival = inter_arrival, jump_type = jump_type, mark = mark, LAMBDA0)
+        llh <- logLik(mhspec0, inter_arrival = inter_arrival, jump_type = jump_type, mark = mark, LAMBDA0)
         return(llh)
 
       }
@@ -335,7 +335,7 @@ setMethod(
 
 
 setMethod(
-  f="mHFit",
+  f="mhfit",
   signature(object="missing"),
   function(object, arrival = NULL, inter_arrival = NULL, N = NULL,
            jump_type = NULL, mark = NULL, ...){
@@ -381,7 +381,7 @@ setMethod(
     }
 
 
-    # set default mHSpec0
+    # set default mhspec0
     if (dimens ==1 ){
 
       MU1 <- 0.2
@@ -389,7 +389,7 @@ setMethod(
       BETA1 <- 2
       ETA1 <- 0
 
-      mHSpec0 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1)
+      mhspec0 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1)
 
     } else if(dimens == 2){
 
@@ -398,7 +398,7 @@ setMethod(
       BETA2 <- matrix(c(2.90, 2.90, 2.90, 2.90), nrow = 2, byrow=TRUE)
       ETA2 <- matrix(c(0, 0, 0, 0), nrow = 2, byrow=TRUE)
 
-      mHSpec0 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2)
+      mhspec0 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2)
     }
 
     if (is.null(mark)){
@@ -406,7 +406,7 @@ setMethod(
       mark[1] <- 0
     }
 
-    mHFit(mHSpec0, inter_arrival = inter_arrival, jump_type = jump_type, mark = mark)
+    mhfit(mhspec0, inter_arrival = inter_arrival, jump_type = jump_type, mark = mark)
 
   }
 )

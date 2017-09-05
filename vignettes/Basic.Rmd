@@ -12,33 +12,33 @@ vignette: >
 
 ### Install pacakge
 
-To install ```mHawkes``` package, first install ```devtools```.
+To install ```mhawkes``` package, first install ```devtools```.
 
 ```{r, eval=FALSE}
 # install.packages("devtools")  #if devtools is not installed
 ```
 
-Install ```mHawkes``` package from github.
+Install ```mhawkes``` package from github.
 
 ```{r, eval=FALSE}
-# devtools::install_github("ksublee/mHawkes")
+# devtools::install_github("ksublee/mhawkes")
 ```
 
-Load ```mHawkes```.
+Load ```mhawkes```.
 
 ```{r}
-library("mHawkes")
+library("mhawkes")
 ```
 
 Let's start with simple example.
-For exemplary purposes, one can simulate a one dimensional Hawkes model by simply calling ```mHSim```.
+For exemplary purposes, one can simulate a one dimensional Hawkes model by simply calling ```mhsim```.
 ```{r}
-mHSim()
+mhsim()
 ```
 The default parameters are set to be ```MU <- 0.2```, ```ALPHA <- 1.5``` and ```BETA <-2 ```.
-For two-dimensional model, simply call ```mHSim``` with ```dimens = 2``` argument.
+For two-dimensional model, simply call ```mhsim``` with ```dimens = 2``` argument.
 ```{r}
-mHSim(dimens=2)
+mhsim(dimens=2)
 ```
 The default parameters are set to be ```MU <- matrix(c(0.2), nrow = 2)```, ```ALPHA <- matrix(c(0.7, 0.9, 0.9, 0.7), byrow=TRUE)``` and ```BETA <- matrix(c(2, 2, 2, 2), nrow = 2)```.
 
@@ -46,7 +46,7 @@ The default parameters are set to be ```MU <- matrix(c(0.2), nrow = 2)```, ```AL
 ### One dimensional Hawkes process
 
 This subsection explaines how to construct a one dimensional Hawkes model.
-First, create a ```mHSpec``` which defines the Hawkes model.
+First, create a ```mhspec``` which defines the Hawkes model.
 Basically the model can be defined up to 9 dimension
 but currently fully supported for one and two diemsional model.
 More precisely, the simulation works well for high dimension, 
@@ -65,17 +65,17 @@ In the following case ```Jump``` and ```ETA``` slots, which deteremine the mark,
 MU1 <- 0.3
 ALPHA1 <- 1.5
 BETA1 <- 2
-mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
-show(mHSpec1)
+mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+show(mhspec1)
 ```
 
-To simulate a path, use function ```mHSim```.
+To simulate a path, use function ```mhsim```.
 
 ```{r}
-res1 <- mHSim(mHSpec1,  n=1000)
+res1 <- mhsim(mhspec1,  n=1000)
 ```
 
-The output ```res1``` is an S3-object of ```mHReal``` and a list of ```inter_arrival```, ```arrival```, ```jump_type```, ```mark```,```N```, ```Ng```, ```lambda```, and ```lambda_component```.
+The output ```res1``` is an S3-object of ```mhreal``` and a list of ```inter_arrival```, ```arrival```, ```jump_type```, ```mark```,```N```, ```Ng```, ```lambda```, and ```lambda_component```.
 ```inter_arrival```, ```arrival```, ```jump_type```, and ```mark``` are numeric vectors
 and ```N```, ```Ng```, ```lambda```, and ```lambda_component``` are matrices.
 
@@ -84,8 +84,8 @@ res1
 ```
 
 Note that the ```inter_arrival```, ```arrival```, ```Ng``` and ```N``` start at zero.
+The difference between ```Ng``` and ```N``` will be explained in the next subsection.
 Thus, ```inter_arrival[2]``` and ```arrival[2]``` are first arrival times.
-
 
 
 Simle way to plot the realized processes:
@@ -94,47 +94,48 @@ plot(res1$arrival, res1$N[,'N1'], 's', xlab="t", ylab="N")
 ```
 
 Intensity process can be plotted by ```plot_lambda``` function.
+Note that ```BETA``` is provided to describe the exponential decaying.
 
 ```{r}
-plot_lambda(res1$arrival, res1$N[,'N1'], BETA1)
+plot_lambda(res1$arrival[1:20], res1$N[,'N1'][1:20], BETA1)
 ```
 
 The log-likelihood function is computed by ```logLik``` method.
-In this case, the inter-arrival times and ```mHSpec``` are inputs of the function. 
+In this case, the inter-arrival times and ```mhspec``` are inputs of the function. 
 
 ```{r}
 inter_arrival1 <- res1$inter_arrival
-logLik(mHSpec1, inter_arrival = inter_arrival1)
+logLik(mhspec1, inter_arrival = inter_arrival1)
 ```
 
 
-The likelihood estimation is performed using ```mHFit``` function.
-The specification of the initial values of the parameters, ```mHSpec0``` is needed.
-In this example, ```mHSpec0``` is set to be ```mHspec1`, which is defined previously, for simplicity but any candidates for the starting value of the numerical procedure can be used.
+The likelihood estimation is performed using ```mhfit``` function.
+The specification of the initial values of the parameters, ```mhspec0``` is needed.
+In this example, ```mhspec0``` is set to be ```mhspec1`, which is defined previously, for simplicity but any candidates for the starting value of the numerical procedure can be used.
 Note that only ```arrival``` or ```inter_arrival``` is needed.
 (Indeed, )
 
 ```{r, warning=FALSE}
-mHSpec0 <- mHSpec1
-mle <- mHFit(mHSpec0, inter_arrival = inter_arrival1)
+mhspec0 <- mhspec1
+mle <- mhfit(mhspec0, inter_arrival = inter_arrival1)
 summary(mle)
 ```
 
 
 
-### one dimensional Hawkes process with jump
+### One dimensional Hawkes process with mark(jump)
 
-Mark structure can be added with Jump slot.
+Mark structure can be added with ```Jump``` slot in ```mhspec```.
 In addition, linear impact parameter ```ETA``` can be added.
 
 ```{r}
 ETA1 <- 0.15
 JUMP1 <- function(n,...) rgeom(n, 0.65) + 1
 
-mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1, Jump =JUMP1)
+mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1, Jump =JUMP1)
 ```
 ```{r}
-res1 <- mHSim(mHSpec1,  n=10)
+res1 <- mhsim(mhspec1,  n=10)
 ```
 
 
@@ -154,17 +155,17 @@ BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow=TRUE)
 ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
 JUMP2 <- function(n,...) rgeom(n, 0.65) + 1
 LAMBDA0 <- matrix(c(0.1, 0.1, 0.1, 0.1), nrow = 2, byrow=TRUE)
-mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
 ```
 
 ```{r}
-mHSpec2
+mhspec2
 ```
 
-To simulate, use function ```mHSim```.
+To simulate, use function ```mhsim```.
 
 ```{r}
-res2 <- mHSim(mHSpec2,  n=100)
+res2 <- mhsim(mhspec2,  n=100)
 summary(res2)
 ```
 
@@ -190,7 +191,7 @@ Frome the result, we get a vector of realized inter arrival times.
 inter_arrival1 <- res1$inter_arrival
 ```
 ```{r, warning=FALSE}
-mle <- mHFit(mHSpec1, inter_arrival = inter_arrival1)
+mle <- mhfit(mhspec1, inter_arrival = inter_arrival1)
 ```
 
 Frome the result, we get a vector of realized inter arrival times.
@@ -203,19 +204,19 @@ jump_type2 <- res2$jump_type
 
 Log-likelihood is computed by a function ```logLik```.
 ```{r}
-logLik(mHSpec2,  inter_arrival = inter_arrival2, jump_type = jump_type2, mark = mark2)
+logLik(mhspec2,  inter_arrival = inter_arrival2, jump_type = jump_type2, mark = mark2)
 ```
 
-A log-likelihood estimation is performed using ```mHFit```.
+A log-likelihood estimation is performed using ```mhfit```.
 ```mSpec0``` is regarded as a starting point of the numerical optimization.
 
 ```{r, warning=FALSE, error=FALSE}
-mHSpec0 <- mHSpec2
-mle <- mHFit(mHSpec0, inter_arrival = inter_arrival2, jump_type = jump_type2, mark = mark2)
+mhspec0 <- mhspec2
+mle <- mhfit(mhspec0, inter_arrival = inter_arrival2, jump_type = jump_type2, mark = mark2)
 summary(mle)
 ```
 
-The parameters to be estimated depends on ```mHSpec0```.
+The parameters to be estimated depends on ```mhspec0```.
 For example, if ```MU[1]``` and ```MU[2]``` are different, then both parameters are estimated.
 If ```MU[1]``` and ```MU[2]``` are equal, then two parameters are assumed to be the same.
 
@@ -226,13 +227,13 @@ BETA0 <- matrix(c(2.25, 2.251, 2.251, 2.25), nrow = 2, byrow=TRUE)
 ETA0 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
 JUMP0 <- function(n,...) rgeom(n, 0.65) + 1
 
-mHSpec0 <- new("mHSpec", MU=MU0, ALPHA=ALPHA0, BETA=BETA0, ETA=ETA0, Jump =JUMP0)
+mhspec0 <- new("mhspec", MU=MU0, ALPHA=ALPHA0, BETA=BETA0, ETA=ETA0, Jump =JUMP0)
 ```
 
 
 ```{r, warning=FALSE, error=FALSE}
 
-mle <- mHFit(mHSpec0, inter_arrival = inter_arrival2, jump_type = jump_type2, mark = mark2)
+mle <- mhfit(mhspec0, inter_arrival = inter_arrival2, jump_type = jump_type2, mark = mark2)
 summary(mle)
 ```
 

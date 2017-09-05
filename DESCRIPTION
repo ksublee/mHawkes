@@ -1,4 +1,4 @@
-Package: mHawkes
+Package: mhawkes
 Type: Package
 Title: Simulate and estimate marked Hawkes process
 Version: 0.2.0

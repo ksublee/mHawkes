@@ -1,29 +1,29 @@
 # This code implements the markes Hawkes process simulation.
 
-setGeneric("mHSim", function(object, ...) standardGeneric("mHSim"))
+setGeneric("mhsim", function(object, ...) standardGeneric("mhsim"))
 
 #' Simulate an n-dimensional (marked) Hawkes process
 #'
 #' The method simulate n-dimensional marked Hawkes processes.
-#' The object \code{\link{mHSpec-class}} contains the parameter values such as alpha, beta, eta.
+#' The object \code{\link{mhspec-class}} contains the parameter values such as alpha, beta, eta.
 #' The mark (jump) structure may or may not be included.
-#' It returns an object of class 'mHreal'.
+#' It returns an object of class 'mhreal'.
 #'
-#' @param object \code{\link{mHSpec-class}}. This object includes the parameter values.
-#' @param LAMBDA0 the starting values of lambda (intensity process). Must have the same dimensional matrix (n by n) with the parameters in mHSpec.
+#' @param object \code{\link{mhspec-class}}. This object includes the parameter values.
+#' @param LAMBDA0 the starting values of lambda (intensity process). Must have the same dimensional matrix (n by n) with the parameters in mhspec.
 #' @param n the number of observations.
 #'
 #' @examples
 #' # Example for one dimensional Hawkes process (without mark)
 #' # Simple simulation for example
-#' mHSim()
-#' mHSim(dimens = 2)
+#' mhsim()
+#' mhsim(dimens = 2)
 #'
 #' # Define a one-dimensional model.
 #' MU1 <- 0.3; ALPHA1 <- 1.5; BETA1 <- 2
-#' mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
-#' # Simulate with mHSim funciton.
-#' res1 <- mHSim(mHSpec1,  n=100)
+#' mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+#' # Simulate with mhsim funciton.
+#' res1 <- mhsim(mhspec1,  n=100)
 #' summary(res1)
 #' as.matrix(res1)
 #'
@@ -34,16 +34,16 @@ setGeneric("mHSim", function(object, ...) standardGeneric("mHSim"))
 #' BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow=TRUE)
 #' ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
 #' JUMP2 <- function(n,...) rgeom(n, 0.65) + 1   # mark size follows a geometric distribution
-#' mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
-#' # Simulate with mHSim function.
+#' mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+#' # Simulate with mhsim function.
 #' LAMBDA0 <- matrix(c(0.1, 0.1, 0.1, 0.1), nrow = 2, byrow=TRUE)
-#' res2 <- mHSim(mHSpec2, LAMBDA0 = LAMBDA0, n = 100)
+#' res2 <- mhsim(mhspec2, LAMBDA0 = LAMBDA0, n = 100)
 #' class(res2)
 #' summary(res2)
 #' as.matrix(res2)
 setMethod(
-  f="mHSim",
-  signature(object = "mHSpec"),
+  f="mhsim",
+  signature(object = "mhspec"),
   definition = function(object, LAMBDA0 = NULL, n = 1000){
 
     # dimension of Hawkes process
@@ -167,15 +167,15 @@ setMethod(
 
 
     realization <- list(object, inter_arrival, cumsum(inter_arrival), jump_type, mark, N, Ng, lambda, lambda_component)
-    names(realization) <- c("mHSpec", "inter_arrival", "arrival", "jump_type", "mark", "N", "Ng", "lambda", "lambda_component")
-    class(realization) <- c("mHReal")
+    names(realization) <- c("mhspec", "inter_arrival", "arrival", "jump_type", "mark", "N", "Ng", "lambda", "lambda_component")
+    class(realization) <- c("mhreal")
 
     return(realization)
   }
 )
 
 setMethod(
-  "mHSim",
+  "mhsim",
   signature("missing"),
   function(object, dimens = 1, n = 1000) {
     # default values
@@ -185,9 +185,9 @@ setMethod(
       ALPHA1 <- 1.5
       BETA1 <- 2
 
-      mHSpec1 <- new("mHSpec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+      mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
 
-      mHSim(mHSpec1, n =n)
+      mhsim(mhspec1, n = n)
 
     } else if (dimens == 2){
 
@@ -195,8 +195,8 @@ setMethod(
       ALPHA2 <- matrix(c(0.7, 0.9, 0.9, 0.7), nrow = 2, byrow=TRUE)
       BETA2 <- matrix(c(2, 2, 2, 2), nrow = 2, byrow=TRUE)
 
-      mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2)
-      mHSim(mHSpec2, n = n)
+      mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2)
+      mhsim(mhspec2, n = n)
 
     } else {
 

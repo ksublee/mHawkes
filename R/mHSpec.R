@@ -1,15 +1,15 @@
 setClassUnion("matrixORnumeric", c("matrix", "numeric"))
 
-#' Check the validity of mHSpec
+#' Check the validity of mhspec
 #'
-#' This function checks the validity of mHSpec.
+#' This function checks the validity of mhspec.
 #' For one dimensional case, if one of the parameter is not matrix, then all parameters should not be matrix.
 #' If one of the parameter is atomic, then all parameters should be atomic.
 #' If all parameters are matrix, then the nrow should be equal.
 #' The number of columns of MU matrix should be one.
 #' ALPHA, BETA, ETA matrices should be sqaure matrices.
 #' The dimension of the model is less than 10.
-validmHSpec <- function(object) {
+valid_mhspec <- function(object) {
 
   if(!is.matrix(object@MU) | !is.matrix(object@ALPHA) | !is.matrix(object@BETA) | (!is.null(object@ETA) & !is.matrix(object@ETA))){
 
@@ -99,9 +99,9 @@ validmHSpec <- function(object) {
 #' BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow=TRUE)
 #' ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
 #' JUMP2 <- function(n,...) rgeom(n, 0.65) + 1
-#' mHSpec2 <- new("mHSpec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+#' mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
 setClass(
-  "mHSpec",
+  "mhspec",
   slots = list(
     MU = "matrixORnumeric",
     ALPHA = "matrixORnumeric",
@@ -109,12 +109,12 @@ setClass(
     ETA = "matrixORnumeric",
     Jump = "function"
   ),
-  validity = validmHSpec
+  validity = valid_mhspec
 )
 
 setMethod(
   "initialize",
-  "mHSpec",
+  "mhspec",
   function(.Object, MU, ALPHA, BETA, ETA=NULL, Jump=NULL, stability_check=FALSE){
 
     # If Jump is not provided, then Jump is constant 1.
@@ -156,7 +156,7 @@ setMethod(
 
 setMethod(
   "show",
-  "mHSpec",
+  "mhspec",
   function(object){
 
     dimens <- length(object@MU)
@@ -213,7 +213,7 @@ name_unique_coef_mtrx <- function(M, notation){
 
 setMethod(
   "coef",
-  "mHSpec",
+  "mhspec",
   function(object, uniqueness = FALSE){
 
     dimens <- length(object@MU)
