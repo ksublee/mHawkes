@@ -1,0 +1,341 @@
+---
+title: "Basic example"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::github_document
+---
+
+### Install pacakge
+
+To install ```mhawkes``` package, first install ```devtools```.
+
+```{r, eval=FALSE}
+# install.packages("devtools")  #if devtools is not installed
+```
+
+Install ```mhawkes``` package from github.
+
+```{r, eval=FALSE}
+# devtools::install_github("ksublee/mhawkes")
+```
+
+Load ```mhawkes```.
+
+```{r}
+library("mhawkes")
+```
+
+Let's start with simple example.
+For exemplary purposes, one can simulate a one dimensional Hawkes model by simply calling ```mhsim```.
+```{r, warning=FALSE}
+mhsim()
+```
+The default parameters are set to be ```MU <- 0.2```, ```ALPHA <- 1.5``` and ```BETA <- 2```.
+
+
+
+### One dimensional Hawkes process
+
+This subsection explaines how to construct, simulate, and estimate a one dimensional Hawkes model.
+Basically the model can be defined up to 9 dimension
+but currently fully supported for one and two diemsional model.
+More precisely, the simulation works well for high dimension, 
+but for estimation procedure, one or two dimesnional model is recommended.
+
+First, create a ```mhspec``` which defines the Hawkes model.
+S4 class ```mhspec``` contains slots of model parameters, ```MU```, ```ALPHA```, ```BETA```, ```ETA``` and ```mark```.
+
+The parameters of the model, the slots of ```mhspec```, is defined by matrices 
+but setting as numeric values are also supported for one dimesional model.
+For higher model, the parameters should be defined by matrices.
+
+The following is an example of one dimensional Hawkes model (without mark).
+Parameter inputs can be a numeric value or 1-by-1 matrix.
+The simulation speed with a numeric valued parameter is little bit faster than the 1 by 1 matrix parameters.
+In the following case, ```mark``` and ```ETA``` slots, which deteremine the mark size and impact, are ommited and set to be default values.
+
+```{r}
+set.seed(1107)
+MU1 <- 0.3
+ALPHA1 <- 1.5
+BETA1 <- 2
+mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+show(mhspec1)
+```
+
+To simulate a path, use function ```mhsim```, where ```n``` is the number of observations.
+
+```{r, warning=FALSE}
+res1 <- mhsim(mhspec1,  n=5000)
+```
+
+The output ```res1``` is an S3-object of ```mhreal``` and a list of ```inter_arrival```, ```arrival```, ```mark_type```, ```mark```,```N```, ```Ng```, ```lambda```, and ```lambda_component```.
+Among those ```inter_arrival```, ```arrival```, ```mark_type```, and ```mark``` are numeric vectors
+and ```N```, ```Ng```, ```lambda```, and ```lambda_component``` are matrices.
+
+slot | meaning
+-------------------|---------------------------------
+```inter_arrival```| inter-arrival between events 
+```arrival``` | cumulative sum of ```inter_arrival```
+```mark_type``` | the dimension of realized mark
+```mark``` | the size of mark
+```N``` | the realization of Hawkes processs
+```Ng``` | the ground process
+```lambda``` | the intenisty process
+```lambda_component``` | each component of the intensity process
+
+Print the result
+
+```{r}
+res1
+```
+
+Or, use summary function.
+```{r}
+summary(res1)
+```
+
+Note that the ```inter_arrival```, ```arrival```, ```Ng``` and ```N``` start at zero.
+Thus, ```inter_arrival[2]``` and ```arrival[2]``` are first arrival times of event.
+Since the model is the Hawkes process without mark, ```Ng``` and ```N``` are equal.
+```Ng``` is the ground process, a counting process without mark and hence only counts the number of events.
+In a one dimensional model, ```lambda = mu + lambda_component```.
+About ```lambda_component``` in higher-order models are discussed in the next subsection.
+
+
+Simle way to plot the realized processes:
+```{r}
+plot(res1$arrival[1:20], res1$N[,'N1'][1:20], 's', xlab="t", ylab="N")
+```
+
+Intensity process can be plotted by ```plot_lambda``` function.
+Note that ```BETA``` is provided to describe the exponential decaying.
+
+```{r}
+plot_lambda(res1$arrival[1:20], res1$N[,'N1'][1:20], BETA1)
+```
+
+The log-likelihood function is computed by ```logLik``` method.
+In this case, the inter-arrival times and ```mhspec``` are inputs of the function.
+
+```{r}
+logLik(mhspec1, inter_arrival = res1$inter_arrival)
+```
+
+
+The likelihood estimation is performed using ```mhfit``` function.
+The specification of the initial values of the parameters, ```mhspec0``` is needed.
+In the following example, ```mhspec0``` is set to be ```mhspec1```, which is defined previously, for simplicity, but any candidates for the starting value of the numerical procedure can be used.
+
+
+Note that only ```arrival``` or ```inter_arrival``` is needed.
+(Indeed, for more precise simulation, ```LAMBDA0```, the inital value of lambda compoment, should be specified. If not, internally determined initial values are set.)
+
+```{r, warning=FALSE}
+mhspec0 <- mhspec1
+mle <- mhfit(mhspec0, inter_arrival = res1$inter_arrival)
+summary(mle)
+```
+
+One can omitt ```mhspec``` but it is recommended that you provide a starting values.
+
+```{r, warning=FALSE}
+summary(mhfit(inter_arrival = res1$inter_arrival))
+```
+
+
+Note that for the numerical procedure, ```maxLik``` function of ```maxLik``` package is used with ```BFGS``` method.
+Any method supported by ```maxLik``` can be used.
+
+```{r, warning=FALSE}
+summary(mhfit(mhspec0, inter_arrival = res1$inter_arrival, method = "NR"))
+```
+
+
+### One dimensional Hawkes process with mark
+
+Mark structure can be added with ```mark``` slot in ```mhspec```.
+```mark``` slot is a function that generates marks.
+Marks can be constants or random variables.
+In addition, linear impact parameter ```ETA``` can be added.
+The linear impact function means that when the realized jump size is ```k```, then the impact is porpotional to ```1 +(k-1)ETA```.
+In the following, the mark follows geometric distribution.
+
+
+```{r}
+ETA1 <- 0.15
+mark1 <- function(n,...) rgeom(n, 0.65) + 1
+mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1, mark=mark1)
+```
+```{r}
+res1 <- mhsim(mhspec1,  n=10)
+```
+
+
+Plot the realized processes.
+
+```{r}
+# plot(res1$arrival, res1$N[,'N1'], 's', xlab="t", ylab="N")
+```
+
+
+### Two-dimensional Hawkes model
+
+For a simple example, one can simulate a two-dimensional Hawkes process with default setting.
+```{r}
+mhsim(dimens=2)
+```
+The default parameters are set to be ```MU <- matrix(c(0.2), nrow = 2)```, ```ALPHA <- matrix(c(0.7, 0.9, 0.9, 0.7), byrow=TRUE)``` and ```BETA <- matrix(c(2, 2, 2, 2), nrow = 2)```.
+
+
+In general, the parameters, the slots of ```mhspec```,  are set by matrices.
+```MU``` is 2-by-1, and ```ALPHA, BETA, ETA``` are 2-by-2 matrices.
+```mark``` is a random number generatring fucntion.
+```LAMBDA0```, 2-by-2 matrix, represents the initial values of ```lambda_component```.
+The intensity process is definde by 
+
+$$ \lambda_1 = \mu_1 + \lambda_{11} + \lambda_{12} $$
+$$ \lambda_2 = \mu_2 + \lambda_{21} + \lambda_{22} $$
+$\lambda_{ij}$ are lambda components and ```LAMBDA0``` represents $lambda_{ij}(0)$. 
+
+```{r}
+MU2 <- matrix(c(0.2), nrow = 2)
+ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
+BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow=TRUE)
+ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
+mark2 <- function(n,...) rgeom(n, 0.65) + 1
+LAMBDA0 <- matrix(c(0.1, 0.1, 0.1, 0.1), nrow = 2, byrow=TRUE)
+mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, mark =mark2)
+```
+
+```{r}
+mhspec2
+```
+
+To simulate, use function ```mhsim```.
+
+```{r}
+res2 <- mhsim(mhspec2,  n=5000)
+summary(res2)
+```
+
+Plot N.
+
+```{r}
+# plot(res2$arrival[1:10], res2$N[1:10,1], 's')
+```
+
+```{r}
+# plot(res2)
+```
+
+
+Plot lambda.
+
+```{r}
+# plotlambda(res2$arrival[1:10], res2$lambda[1:10,1], BETA2[1,1])
+```
+
+
+Frome the result, we get a vector of realized inter arrival times.
+```{r}
+inter_arrival2 <- res2$inter_arrival
+mark2 <- res2$mark
+mark_type2 <- res2$mark_type
+```
+
+
+Log-likelihood is computed by a function ```logLik```.
+```{r}
+logLik(mhspec2, inter_arrival = inter_arrival2, mark_type = mark_type2, mark = mark2)
+```
+
+A log-likelihood estimation is performed using ```mhfit```.
+```mhspec0``` is regarded as a starting point of the numerical optimization.
+
+```{r, warning=FALSE, error=FALSE}
+mhspec0 <- mhspec2
+mle <- mhfit(mhspec0, inter_arrival = inter_arrival2, mark_type = mark_type2, mark = mark2)
+summary(mle)
+```
+
+One can estimate using ```N``` and ```inter_arrival``` with the same result.
+```{r, warning=FALSE, error=FALSE}
+summary(mhfit(mhspec0, inter_arrival = inter_arrival2, N = res2$N))
+```
+
+### Parameter setting 
+
+The parameters to be estimated depends on ```mhspec0```.
+For example, if ```ALPHA[1,1]``` and ```ALPHA[1,2]``` in ```mhspec0```are different, 
+then both parameters are estimated.
+If ```ALPHA[1,1]``` and ```ALPHA[1,2]``` are equal, then two parameters are assumed to be the same and hence only one parameter is estimated.
+
+Simulate a path to apply ```mhfit```.
+```{r}
+MU2 <- matrix(c(0.2, 0.2), nrow = 2)
+ALPHA2 <- matrix(c(0.75, 0.90, 0.90, 0.75), nrow = 2, byrow=TRUE)
+BETA2 <- matrix(c(2.5, 2.5, 2.5, 2.5), nrow = 2, byrow=TRUE)
+ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
+mark2 <- function(n,...) rgeom(n, 0.65) + 1
+
+mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, mark =mark2)
+res2 <- mhsim(mhspec2, n=1000)
+```
+
+
+In the first example, ```ALPHA``` is a matrix with the same element.
+```{r, warning=FALSE}
+MU0 <- matrix(c(0.15, 0.15), nrow = 2)
+ALPHA0 <- matrix(c(0.75, 0.75, 0.75, 0.75), nrow = 2, byrow=TRUE)
+BETA0 <- matrix(c(2.6, 2.6, 2.6, 2.6), nrow = 2, byrow=TRUE)
+ETA0 <- matrix(c(0.2, 0.2, 0.2, 0.2), nrow = 2, byrow=TRUE)
+mark0 <- function(n,...) rgeom(n, 0.65) + 1
+
+mhspec0 <- new("mhspec", MU=MU0, ALPHA=ALPHA0, BETA=BETA0, ETA=ETA0, mark =mark0)
+summary(mhfit(mhspec0, arrival = res2$arrival, N = res2$N))
+```
+
+
+In the second example, ```ALPHA```'s elements are not same, but symmetric as in the simulation.
+```{r, warning=FALSE}
+MU0 <- matrix(c(0.15, 0.15), nrow = 2)
+ALPHA0 <- matrix(c(0.75, 0.751, 0.751, 0.75), nrow = 2, byrow=TRUE)
+BETA0 <- matrix(c(2.6, 2.6, 2.6, 2.6), nrow = 2, byrow=TRUE)
+ETA0 <- matrix(c(0.2, 0.2, 0.2, 0.2), nrow = 2, byrow=TRUE)
+mark0 <- function(n,...) rgeom(n, 0.65) + 1
+
+mhspec0 <- new("mhspec", MU=MU0, ALPHA=ALPHA0, BETA=BETA0, ETA=ETA0, mark =mark0)
+summary(mhfit(mhspec0, arrival = res2$arrival, N = res2$N))
+```
+
+
+### Dependence structure for mark
+
+The mark distribution may be dependent with .
+For example, consider a mark Hawkes model with conditional geometric distribution.
+
+```{r}
+dependent_mark <- function(n, k, lambda = lambda, mark_type = mark_type, ...){
+  c <- 0.15
+  d <- 1
+  U <- 2
+  p <- 1 / min(d + c*lambda[k, mark_type[k]], U)
+  rgeom(n, p) + 1
+}
+
+MU2 <- matrix(c(0.2, 0.2), nrow = 2)
+ALPHA2 <- matrix(c(0.75, 0.90, 0.90, 0.75), nrow = 2, byrow=TRUE)
+BETA2 <- matrix(c(2.5, 2.5, 2.5, 2.5), nrow = 2, byrow=TRUE)
+ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
+
+mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, mark=dependent_mark)
+summary(res2 <- mhsim(mhspec2, n=5000))
+```
+```{r, warning=FALSE}
+summary(mhfit(mhspec2, arrival = res2$arrival, N = res2$N))
+```
+
+
+
+### Impact function
