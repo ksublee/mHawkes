@@ -91,15 +91,15 @@ valid_mhspec <- function(object) {
 #' @slot ALPHA numeric value or matrix. Shoud be a matrix for two or larger dimensional model.
 #' @slot BETA numeric value or matrix. Shoud be a matrix for two or larger dimensional model.
 #' @slot ETA numeric value or matrix. Shoud be a matrix for two or larger dimensional model.
-#' @slot Jump a function that generate a random number with specific distribution.
+#' @slot mark a function that generate a random number with specific distribution.
 #'
 #' @examples
 #' MU2 <- matrix(c(0.2), nrow = 2)
 #' ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
 #' BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow=TRUE)
 #' ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
-#' JUMP2 <- function(n,...) rgeom(n, 0.65) + 1
-#' mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+#' mark2 <- function(n,...) rgeom(n, 0.65) + 1
+#' mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, mark = mark2)
 setClass(
   "mhspec",
   slots = list(
@@ -107,7 +107,7 @@ setClass(
     ALPHA = "matrixORnumeric",
     BETA = "matrixORnumeric",
     ETA = "matrixORnumeric",
-    Jump = "function"
+    mark = "function"
   ),
   validity = valid_mhspec
 )
@@ -115,10 +115,10 @@ setClass(
 setMethod(
   "initialize",
   "mhspec",
-  function(.Object, MU, ALPHA, BETA, ETA=NULL, Jump=NULL, stability_check=FALSE){
+  function(.Object, MU, ALPHA, BETA, ETA=NULL, mark=NULL, stability_check=FALSE){
 
-    # If Jump is not provided, then Jump is constant 1.
-    if (is.null(Jump)) Jump <- function(n,...) rep(1,n)
+    # If mark is not provided, then mark is constant 1.
+    if (is.null(mark)) mark <- function(n,...) rep(1,n)
 
     # If ETA is not provided, then ETA = 0 or zero matrix with the same dimension of BETA
     if (is.null(ETA)) {
@@ -135,10 +135,10 @@ setMethod(
     .Object@ETA <- ETA
 
     # check the number of arguments
-    if(length(formals(Jump)) == 1){
-      .Object@Jump <- function(n, ...) Jump(n)
+    if(length(formals(mark)) == 1){
+      .Object@mark <- function(n, ...) mark(n)
     } else {
-      .Object@Jump <- Jump
+      .Object@mark <- mark
     }
 
     # Check spectral radius
@@ -161,29 +161,29 @@ setMethod(
 
     dimens <- length(object@MU)
     cat(paste0(toString(dimens), "-dimensional (marked) Hawkes model with linear impact function.\n"))
-    cat("The intensity process is defined by\n\n")
+    cat("The intensity process is defined by\n")
     cat("LAMBDA(t) = MU + int ALPHA %/% BETA (1+(k-1)ETA) %*% exp(-BETA(t-u)) d N(t)\n" )
     cat("\n")
-    cat("Parameters: \n\n")
+    cat("Parameters: \n")
 
     MU <- object@MU
     cat("MU: \n")
     print(MU)
 
     ALPHA <- object@ALPHA
-    cat("\nALPHA: \n")
+    cat("ALPHA: \n")
     print(ALPHA)
 
     BETA <- object@BETA
-    cat("\nBETA: \n")
+    cat("BETA: \n")
     print(BETA)
 
     ETA <- object@ETA
-    cat("\nETA: \n")
+    cat("ETA: \n")
     print(ETA)
 
-    cat("\nMark distribution: \n")
-    print(object@Jump)
+    cat("Mark distribution: \n")
+    print(object@mark)
     cat("------------------------------------------\n")
   }
 )

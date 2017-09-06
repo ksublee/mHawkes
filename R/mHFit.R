@@ -6,15 +6,15 @@
 #'
 #' @param object \code{\link{mhspec-class}}. The parameter values in the object are used to compute the log-likelihood.
 #' @param inter_arrival Inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.
-#' @param jump_type a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.
+#' @param mark_type a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.
 #' @param mark a vector of mark (jump) sizes. Start with zero.
 #' @param LAMBDA0 The starting values of lambda. Must have the same dimensional matrix (n by n) with \code{mhspec}.
 #'
 #' @examples
 #' # construct a mhspec
 #' MU1 <- 0.2; ALPHA1 <- 1.0; BETA1 <- 2; ETA1 <- 0.2
-#' JUMP1 <- function(n,...) rgeom(n, 0.7) + 1
-#' mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1, Jump =JUMP1)
+#' mark1 <- function(n,...) rgeom(n, 0.7) + 1
+#' mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1, mark =mark1)
 #' # simualte a path
 #' res1 <- mhsim(mhspec1,  LAMBDA0 = MU1, n=1000)
 #' inter_arrival <- res1$inter_arrival
@@ -27,7 +27,7 @@
 setMethod(
   f="logLik",
   signature(object="mhspec"),
-  function(object, inter_arrival, jump_type=NULL, mark=NULL, LAMBDA0=NULL){
+  function(object, inter_arrival, mark_type=NULL, mark=NULL, LAMBDA0=NULL){
 
     # When the mark sizes are not provided, the jumps are all unit jumps
     if(is.null(mark)) {
@@ -37,11 +37,11 @@ setMethod(
     # dimension of Hawkes process
     dimens <- length(object@MU)
 
-    # if dimens == 1 and jump_type is not provided, then all jump_type is 1.
-    if(dimens==1 & is.null(jump_type)) {
-      jump_type <- rep(1, length(inter_arrival))
-    } else if (dimens != 1 & is.null(jump_type)) {
-      stop("The argument jump_type should be provided.")
+    # if dimens == 1 and mark_type is not provided, then all mark_type is 1.
+    if(dimens==1 & is.null(mark_type)) {
+      mark_type <- rep(1, length(inter_arrival))
+    } else if (dimens != 1 & is.null(mark_type)) {
+      stop("The argument mark_type should be provided.")
     }
 
     # parameter setting
@@ -99,7 +99,7 @@ setMethod(
         Impact <- ALPHA * (1 + (mark[k+1] - 1) * ETA )
       } else {
         Impact <- matrix(rep(0, dimens^2), nrow = dimens)
-        Impact[ , jump_type[k+1]] <- ALPHA[ , jump_type[k+1]] * (1 + (mark[k+1] - 1) * ETA[ , jump_type[k+1]])
+        Impact[ , mark_type[k+1]] <- ALPHA[ , mark_type[k+1]] * (1 + (mark[k+1] - 1) * ETA[ , mark_type[k+1]])
       }
 
 
@@ -113,7 +113,7 @@ setMethod(
       # sum of log lambda when jump occurs
       if (dimens == 1) lambda_lc <- MU + decayed_LAMBDA
       else lambda_lc <- MU + rowSums(decayed_LAMBDA)
-      sum_log_lambda <- sum_log_lambda + log(lambda_lc[jump_type[k+1]])
+      sum_log_lambda <- sum_log_lambda + log(lambda_lc[mark_type[k+1]])
 
     }
 
@@ -134,7 +134,7 @@ setGeneric("mhfit", function(object, ...) standardGeneric("mhfit"))
 #' @param object mhspec, or can be omitted.
 #' @param arrival arrival times of events and hence monotonically increases. Includes inter-arrival for events that occur in all dimensions. Start with zero.
 #' @param inter_arrival inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.
-#' @param jump_type a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.
+#' @param mark_type a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.
 #' @param mark a vector of mark (jump) sizes. Start with zero.
 #' @param N a realization of n-dimensional Hawkes process.
 #' @param LAMBDA0 the starting values of lambda. Must have the same dimensional matrix (n by n) with mhspec.
@@ -160,14 +160,14 @@ setGeneric("mhfit", function(object, ...) standardGeneric("mhfit"))
 #' ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
 #' BETA2 <- matrix(c(2.90, 2.90, 2.90, 2.90), nrow = 2, byrow=TRUE)
 #' ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
-#' JUMP2 <- function(n,...) rgeom(n, 0.65) + 1
-#' mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+#' mark2 <- function(n,...) rgeom(n, 0.65) + 1
+#' mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, mark =mark2)
 #' res2 <- mhsim(mhspec2)
 #'
 #' # Perform maximum likelihood estimation
 #' summary(mhfit(mhspec2, arrival = res2$arrival, N = res2$N))
 #' summary(mhfit(mhspec2, inter_arrival = res2$inter_arrival,
-#'         mark = res2$mark2, jump_type = res2$jump_type))
+#'         mark = res2$mark2, mark_type = res2$mark_type))
 #' summary(mhfit(arrival = res2$arrival, N = res2$N))
 #'
 #' @seealso \code{\link{mhspec-class}}, \code{\link{mhsim,mhspec-method}}
@@ -175,7 +175,7 @@ setMethod(
   f="mhfit",
   signature(object="mhspec"),
   function(object, arrival = NULL, inter_arrival = NULL, N = NULL,
-           jump_type = NULL, mark = NULL, LAMBDA0 = NULL, llh_fun = NULL,
+           mark_type = NULL, mark = NULL, LAMBDA0 = NULL, llh_fun = NULL,
           grad = NULL, hess = NULL, constraint = NULL, method = "BFGS",  ...){
 
     # dimension of Hawkes process
@@ -190,18 +190,18 @@ setMethod(
     }
 
     # argument check
-    if(dimens != 1 & is.null(N) & is.null(jump_type)){
-      stop("One of N and jump_type should be provided.")
-    } else if(dimens != 1 & is.null(jump_type)){
+    if(dimens != 1 & is.null(N) & is.null(mark_type)){
+      stop("One of N and mark_type should be provided.")
+    } else if(dimens != 1 & is.null(mark_type)){
 
       if(!is.matrix(N)) N <- matrix(N, nrow = length(N))
 
-      jump_type <- numeric(nrow(N))
+      mark_type <- numeric(nrow(N))
       mark <- numeric(nrow(N))
 
       for (i in 2:nrow(N)){
-        jump_type[i] <- which(N[i,] != N[i-1,])
-        mark[i] <- N[i, jump_type[i]] - N[i-1, jump_type[i]]
+        mark_type[i] <- which(N[i,] != N[i-1,])
+        mark[i] <- N[i, mark_type[i]] - N[i-1, mark_type[i]]
       }
 
     }
@@ -318,10 +318,10 @@ setMethod(
           }
         }
 
-        mhspec0 <- new("mhspec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, Jump=object@Jump)
+        mhspec0 <- new("mhspec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, mark=object@mark)
 
 
-        llh <- logLik(mhspec0, inter_arrival = inter_arrival, jump_type = jump_type, mark = mark, LAMBDA0)
+        llh <- logLik(mhspec0, inter_arrival = inter_arrival, mark_type = mark_type, mark = mark, LAMBDA0)
         return(llh)
 
       }
@@ -338,7 +338,8 @@ setMethod(
   f="mhfit",
   signature(object="missing"),
   function(object, arrival = NULL, inter_arrival = NULL, N = NULL,
-           jump_type = NULL, mark = NULL, ...){
+           mark_type = NULL, mark = NULL, llh_fun = NULL,
+           grad = NULL, hess = NULL, constraint = NULL, method = "BFGS",  ...){
 
 
     # argument check
@@ -349,31 +350,30 @@ setMethod(
     }
 
 
-
     # argument check
-    if(is.null(N) & is.null(jump_type)){
+    if(is.null(N) & is.null(mark_type)){
 
       #assuming one dimensional model
       dimens <- 1
 
 
-    } else if(is.null(jump_type)){
+    } else if(is.null(mark_type)){
 
       if(!is.matrix(N)) N <- matrix(N, nrow = length(N))
 
-      jump_type <- numeric(nrow(N))
+      mark_type <- numeric(nrow(N))
       mark <- numeric(nrow(N))
 
       for (i in 2:nrow(N)){
-        jump_type[i] <- which(N[i,] != N[i-1,])
-        mark[i] <- N[i, jump_type[i]] - N[i-1, jump_type[i]]
+        mark_type[i] <- which(N[i,] != N[i-1,])
+        mark[i] <- N[i, mark_type[i]] - N[i-1, mark_type[i]]
       }
 
       dimens <- ncol(N)
 
     } else if(is.null(N)){
 
-      dimens <- max(jump_type)
+      dimens <- max(mark_type)
     }
 
     if(dimens != 1 & dimens !=2 ){
@@ -406,7 +406,9 @@ setMethod(
       mark[1] <- 0
     }
 
-    mhfit(mhspec0, inter_arrival = inter_arrival, jump_type = jump_type, mark = mark)
+    mhfit(mhspec0, inter_arrival = inter_arrival, mark_type = mark_type, mark = mark,
+          grad=grad, hess=hess, constraint=constraint, method = method)
+
 
   }
 )

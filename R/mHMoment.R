@@ -25,7 +25,7 @@ setMethod(
       set.seed(seed_value)
 
       if(is.null(mean_jump)){
-        K <- mean(object@Jump(sample_size))
+        K <- mean(object@mark(sample_size))
       } else {
         K <- mean_jump
       }
@@ -41,7 +41,7 @@ setMethod(
       eta <- object@ETA[1,1]
 
       if(is.null(mean_jump)){
-        K <- mean(object@Jump(sample_size))
+        K <- mean(object@mark(sample_size))
       } else {
         K <- mean_jump
       }
@@ -81,8 +81,8 @@ setGeneric("var_diff", function(object, ...) standardGeneric("var_diff"))
 #' ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
 #' BETA2 <- matrix(c(2.90, 2.90, 2.90, 2.90), nrow = 2, byrow=TRUE)
 #' ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
-#' JUMP2 <- function(n,...) rgeom(n, 0.7) + 1
-#' mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+#' mark2 <- function(n,...) rgeom(n, 0.7) + 1
+#' mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, mark =mark2)
 #' var_diff(mhspec2, 1)
 setMethod(
   f = "var_diff",
@@ -107,13 +107,13 @@ setMethod(
     eta <- object@ETA[1,1]
 
     if(is.null(mean_jump)){
-      K <- mean(object@Jump(sample_size))
+      K <- mean(object@mark(sample_size))
     } else {
       K <- mean_jump
     }
 
     if(is.null(mean_jump_square)){
-      K2 <- mean(object@Jump(sample_size)^2)
+      K2 <- mean(object@mark(sample_size)^2)
     } else {
       K2 <- mean_jump_square
     }

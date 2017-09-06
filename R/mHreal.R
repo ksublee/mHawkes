@@ -5,6 +5,7 @@
 #' @param res S3-object of mhreal
 #' @param n number of rows to diplay
 print.mhreal <- function(res, n=20){
+  options(digits=5)
   cat("------------------------------------------\n")
   cat("Simulation result of marked Hawkes model.\n")
   print(res$mhspec)
@@ -29,6 +30,7 @@ print.mhreal <- function(res, n=20){
   }
 
   cat("------------------------------------------\n")
+  options(digits=7)
 }
 
 #' Matrix represetation of mhreal
@@ -65,6 +67,7 @@ as.data.frame.mhreal <- function(res){
 #' @param n number of rows to diplay
 summary.mhreal <- function(res, n=20){
 
+  options(digits=5)
   cat("------------------------------------------\n")
   cat("Simulation result of marked Hawkes model.\n")
   cat("Realized path (with right continuous representation):\n")
@@ -86,6 +89,7 @@ summary.mhreal <- function(res, n=20){
   }
 
   cat("------------------------------------------\n")
+  options(digits=7)
 }
 
 #' Get left continuous version of lambda process
@@ -117,9 +121,9 @@ get_lc_lambda <- function(res){
 
     } else {
 
-      col_indx <- seq(res$jump_type[i], dimens^2, dimens)
+      col_indx <- seq(res$mark_type[i], dimens^2, dimens)
       lc_lambda_component[i, col_indx] <- lc_lambda_component[i, col_indx] -
-        res$mhspec@ALPHA[, res$jump_type[i]] * ( 1 + (res$mark[i] - 1 ) * res$mhspec@ETA[, res$jump_type[i]])
+        res$mhspec@ALPHA[, res$mark_type[i]] * ( 1 + (res$mark[i] - 1 ) * res$mhspec@ETA[, res$mark_type[i]])
 
     }
 

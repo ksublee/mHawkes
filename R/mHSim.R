@@ -33,8 +33,8 @@ setGeneric("mhsim", function(object, ...) standardGeneric("mhsim"))
 #' ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
 #' BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow=TRUE)
 #' ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
-#' JUMP2 <- function(n,...) rgeom(n, 0.65) + 1   # mark size follows a geometric distribution
-#' mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+#' mark2 <- function(n,...) rgeom(n, 0.65) + 1   # mark size follows a geometric distribution
+#' mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, mark =mark2)
 #' # Simulate with mhsim function.
 #' LAMBDA0 <- matrix(c(0.1, 0.1, 0.1, 0.1), nrow = 2, byrow=TRUE)
 #' res2 <- mhsim(mhspec2, LAMBDA0 = LAMBDA0, n = 100)
@@ -100,7 +100,7 @@ setMethod(
     Ng <- matrix(numeric(length = dimens * n), ncol = dimens)
     N  <- matrix(numeric(length = dimens * n), ncol = dimens)
 
-    jump_type <- numeric(length = n)
+    mark_type <- numeric(length = n)
     inter_arrival <- numeric(length = n)
     mark <- numeric(length = n)
 
@@ -128,9 +128,7 @@ setMethod(
       inter_arrival[k] <- min(candidate_arrival)
       minIndex <- which(candidate_arrival == inter_arrival[k], arr.ind = TRUE) #row and col
 
-      jumpType <- minIndex[1]  # row
-      jump_type[k] <- jumpType
-
+      mark_type[k] <- minIndex[1]  # row
 
       # lambda decayed due to time, impact due to mark is not added yet
       decayled_lambda <- current_LAMBDA * exp(-BETA * inter_arrival[k])
@@ -138,22 +136,21 @@ setMethod(
       lambda[k, ] <- MU + rowSums(decayled_lambda)
 
       # generate one random number
-      jump_generator <- object@Jump
-      mark[k] <- object@Jump(n = 1, k = k, N = N, Ng = Ng,
+      mark[k] <- object@mark(n = 1, k = k, N = N, Ng = Ng,
                              lambda = lambda, lambda_component = lambda_component,
-                             jump_type = jump_type)
+                             mark_type = mark_type)
 
       Ng[k, ] <- Ng[k-1, ]
-      Ng[k, jumpType] <- Ng[k-1, jumpType] + 1
+      Ng[k, mark_type[k]] <- Ng[k-1, mark_type[k]] + 1
       N[k, ] <- N[k-1, ]
-      N[k, jumpType] <- N[k-1, jumpType] + mark[k]
+      N[k, mark_type[k]] <- N[k-1, mark_type[k]] + mark[k]
 
       # update lambda
       if (dimens == 1) {
         Impact <- ALPHA * (1 + (mark[k] - 1) * ETA )
       } else {
         Impact <- matrix(rep(0, dimens^2), nrow = dimens)
-        Impact[ , jumpType] <- ALPHA[ , jumpType] * (1 + (mark[k] - 1) * ETA[ , jumpType])
+        Impact[ , mark_type[k]] <- ALPHA[ , mark_type[k]] * (1 + (mark[k] - 1) * ETA[ , mark_type[k]])
       }
 
       # new_LAMBDA = [[lambda11, lambda12, ...], [lambda21, lambda22, ...], ...]
@@ -166,8 +163,8 @@ setMethod(
     }
 
 
-    realization <- list(object, inter_arrival, cumsum(inter_arrival), jump_type, mark, N, Ng, lambda, lambda_component)
-    names(realization) <- c("mhspec", "inter_arrival", "arrival", "jump_type", "mark", "N", "Ng", "lambda", "lambda_component")
+    realization <- list(object, inter_arrival, cumsum(inter_arrival), mark_type, mark, N, Ng, lambda, lambda_component)
+    names(realization) <- c("mhspec", "inter_arrival", "arrival", "mark_type", "mark", "N", "Ng", "lambda", "lambda_component")
     class(realization) <- c("mhreal")
 
     return(realization)
