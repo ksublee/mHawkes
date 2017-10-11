@@ -9,6 +9,8 @@ setClassUnion("matrixORnumeric", c("matrix", "numeric"))
 #' The number of columns of MU matrix should be one.
 #' ALPHA, BETA, ETA matrices should be sqaure matrices.
 #' The dimension of the model is less than 10.
+#'
+#' @param object S4-class of mhspec
 valid_mhspec <- function(object) {
 
   if(!is.matrix(object@MU) | !is.matrix(object@ALPHA) | !is.matrix(object@BETA) | (!is.null(object@ETA) & !is.matrix(object@ETA))){
@@ -92,6 +94,7 @@ valid_mhspec <- function(object) {
 #' @slot BETA numeric value or matrix. Shoud be a matrix for two or larger dimensional model.
 #' @slot ETA numeric value or matrix. Shoud be a matrix for two or larger dimensional model.
 #' @slot mark a function that generate a random number with specific distribution.
+#' @slot impact a function that describe the mark impact
 #'
 #' @examples
 #' MU2 <- matrix(c(0.2), nrow = 2)
@@ -108,6 +111,7 @@ setClass(
     BETA = "matrixORnumeric",
     ETA = "matrixORnumeric",
     mark = "function"
+    #impact = "function"
   ),
   validity = valid_mhspec
 )
@@ -115,7 +119,7 @@ setClass(
 setMethod(
   "initialize",
   "mhspec",
-  function(.Object, MU, ALPHA, BETA, ETA=NULL, mark=NULL, stability_check=FALSE){
+  function(.Object, MU, ALPHA, BETA, ETA=NULL, mark=NULL, impact=NULL, stability_check=FALSE){
 
     # If mark is not provided, then mark is constant 1.
     if (is.null(mark)) mark <- function(n,...) rep(1,n)
@@ -184,9 +188,19 @@ setMethod(
 
     cat("Mark distribution: \n")
     print(object@mark)
+
+    #if(!is.null(impact)){
+    #  cat("Impact function: \n")
+    #  print(object@impact)
+    #}
+
     cat("------------------------------------------\n")
+
+
+
   }
 )
+
 
 name_unique_coef_mtrx <- function(M, notation){
   reference <- character(length(M))
@@ -210,6 +224,7 @@ name_unique_coef_mtrx <- function(M, notation){
   }
   reference
 }
+
 
 setMethod(
   "coef",

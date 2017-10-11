@@ -129,7 +129,7 @@ setMethod(
 
     C1 <- K*K_bb*(alpha_s - alpha_c)^2/(beta - alpha_s_ + alpha_c_)^2
     C2 <- 2*(alpha_s - alpha_c)*K_b/(beta - alpha_s_ + alpha_c_)
-    C3 <- K^2/K
+    C3 <- K2/K
 
     2*K*E_lambda*(C1 + C2 + C3)*time_length
 

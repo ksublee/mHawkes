@@ -112,12 +112,12 @@ setMethod(
     colnames(Ng) <- paste0("Ng", 1:dimens)
 
     # Exact method
-    for (k in 2:n) {
+    for (i in 2:n) {
 
       # Generate candidate arrivals
       # arrival due to mu
       candidate_arrival <- rexp(dimens, rate = MU)
-      current_LAMBDA <- matrix(as.numeric(lambda_component[k-1, ]), nrow = dimens, byrow = TRUE)
+      current_LAMBDA <- matrix(as.numeric(lambda_component[i-1, ]), nrow = dimens, byrow = TRUE)
 
       # arrival due to components
 
@@ -125,32 +125,32 @@ setMethod(
       candidate_arrival <- cbind(candidate_arrival, -1 / BETA * log(pmax(matrixD, 0)))
 
       # The minimum is inter arrival time
-      inter_arrival[k] <- min(candidate_arrival)
-      minIndex <- which(candidate_arrival == inter_arrival[k], arr.ind = TRUE) #row and col
+      inter_arrival[i] <- min(candidate_arrival)
+      minIndex <- which(candidate_arrival == inter_arrival[i], arr.ind = TRUE) #row and col
 
-      mark_type[k] <- minIndex[1]  # row
+      mark_type[i] <- minIndex[1]  # row
 
       # lambda decayed due to time, impact due to mark is not added yet
-      decayled_lambda <- current_LAMBDA * exp(-BETA * inter_arrival[k])
-      lambda_component[k, ] <- t(decayled_lambda)
-      lambda[k, ] <- MU + rowSums(decayled_lambda)
+      decayled_lambda <- current_LAMBDA * exp(-BETA * inter_arrival[i])
+      lambda_component[i, ] <- t(decayled_lambda)
+      lambda[i, ] <- MU + rowSums(decayled_lambda)
 
       # generate one random number
-      mark[k] <- object@mark(n = 1, k = k, N = N, Ng = Ng,
+      mark[i] <- object@mark(n = 1, i = i, N = N, Ng = Ng,
                              lambda = lambda, lambda_component = lambda_component,
                              mark_type = mark_type)
 
-      Ng[k, ] <- Ng[k-1, ]
-      Ng[k, mark_type[k]] <- Ng[k-1, mark_type[k]] + 1
-      N[k, ] <- N[k-1, ]
-      N[k, mark_type[k]] <- N[k-1, mark_type[k]] + mark[k]
+      Ng[i, ] <- Ng[i-1, ]
+      Ng[i, mark_type[i]] <- Ng[i-1, mark_type[i]] + 1
+      N[i, ] <- N[i-1, ]
+      N[i, mark_type[i]] <- N[i-1, mark_type[i]] + mark[i]
 
       # update lambda
       if (dimens == 1) {
-        Impact <- ALPHA * (1 + (mark[k] - 1) * ETA )
+        Impact <- ALPHA * (1 + (mark[i] - 1) * ETA )
       } else {
         Impact <- matrix(rep(0, dimens^2), nrow = dimens)
-        Impact[ , mark_type[k]] <- ALPHA[ , mark_type[k]] * (1 + (mark[k] - 1) * ETA[ , mark_type[k]])
+        Impact[ , mark_type[i]] <- ALPHA[ , mark_type[i]] * (1 + (mark[i] - 1) * ETA[ , mark_type[i]])
       }
 
       # new_LAMBDA = [[lambda11, lambda12, ...], [lambda21, lambda22, ...], ...]
@@ -158,8 +158,8 @@ setMethod(
       #
       # Impact is added.
       new_lambda <- decayled_lambda + Impact
-      lambda_component[k, ] <- t(new_lambda)
-      lambda[k, ] <- MU + rowSums(new_lambda)
+      lambda_component[i, ] <- t(new_lambda)
+      lambda[i, ] <- MU + rowSums(new_lambda)
     }
 
 

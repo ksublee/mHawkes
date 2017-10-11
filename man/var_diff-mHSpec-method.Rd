@@ -35,7 +35,7 @@ MU2 <- matrix(c(0.2), nrow = 2)
 ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
 BETA2 <- matrix(c(2.90, 2.90, 2.90, 2.90), nrow = 2, byrow=TRUE)
 ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
-JUMP2 <- function(n,...) rgeom(n, 0.7) + 1
-mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+mark2 <- function(n,...) rgeom(n, 0.7) + 1
+mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, mark =mark2)
 var_diff(mhspec2, 1)
 }

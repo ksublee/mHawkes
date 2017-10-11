@@ -5,7 +5,7 @@
 \alias{logLik,mhspec-method}
 \title{Compute the loglikelihood function}
 \usage{
-\S4method{logLik}{mhspec}(object, inter_arrival, jump_type = NULL,
+\S4method{logLik}{mhspec}(object, inter_arrival, mark_type = NULL,
   mark = NULL, LAMBDA0 = NULL)
 }
 \arguments{
@@ -13,7 +13,7 @@
 
 \item{inter_arrival}{Inter-arrival times of events. Includes inter-arrival for events that occur in all dimensions. Start with zero.}
 
-\item{jump_type}{a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.}
+\item{mark_type}{a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.}
 
 \item{mark}{a vector of mark (jump) sizes. Start with zero.}
 
@@ -27,8 +27,8 @@ The loglikelihood of the ground process of the Hawkes model.
 \examples{
 # construct a mhspec
 MU1 <- 0.2; ALPHA1 <- 1.0; BETA1 <- 2; ETA1 <- 0.2
-JUMP1 <- function(n,...) rgeom(n, 0.7) + 1
-mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1, Jump =JUMP1)
+mark1 <- function(n,...) rgeom(n, 0.7) + 1
+mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1, mark =mark1)
 # simualte a path
 res1 <- mhsim(mhspec1,  LAMBDA0 = MU1, n=1000)
 inter_arrival <- res1$inter_arrival

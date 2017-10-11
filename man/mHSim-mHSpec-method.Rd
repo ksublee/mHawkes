@@ -18,7 +18,7 @@
 The method simulate n-dimensional marked Hawkes processes.
 The object \code{\link{mhspec-class}} contains the parameter values such as alpha, beta, eta.
 The mark (jump) structure may or may not be included.
-It returns an object of class 'mHreal'.
+It returns an object of class 'mhreal'.
 }
 \examples{
 # Example for one dimensional Hawkes process (without mark)
@@ -40,8 +40,8 @@ MU2 <- matrix(c(0.2), nrow = 2)
 ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
 BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow=TRUE)
 ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
-JUMP2 <- function(n,...) rgeom(n, 0.65) + 1   # mark size follows a geometric distribution
-mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+mark2 <- function(n,...) rgeom(n, 0.65) + 1   # mark size follows a geometric distribution
+mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, mark =mark2)
 # Simulate with mhsim function.
 LAMBDA0 <- matrix(c(0.1, 0.1, 0.1, 0.1), nrow = 2, byrow=TRUE)
 res2 <- mhsim(mhspec2, LAMBDA0 = LAMBDA0, n = 100)

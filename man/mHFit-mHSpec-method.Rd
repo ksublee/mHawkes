@@ -6,7 +6,7 @@
 \title{Perform a maximum likelihood estimation}
 \usage{
 \S4method{mhfit}{mhspec}(object, arrival = NULL, inter_arrival = NULL,
-  N = NULL, jump_type = NULL, mark = NULL, LAMBDA0 = NULL,
+  N = NULL, mark_type = NULL, mark = NULL, LAMBDA0 = NULL,
   llh_fun = NULL, grad = NULL, hess = NULL, constraint = NULL,
   method = "BFGS", ...)
 }
@@ -19,13 +19,15 @@
 
 \item{N}{a realization of n-dimensional Hawkes process.}
 
-\item{jump_type}{a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.}
+\item{mark_type}{a vector of dimensions. Distinguished by numbers, 1, 2, 3, and so on. Start with zero.}
 
 \item{mark}{a vector of mark (jump) sizes. Start with zero.}
 
 \item{LAMBDA0}{the starting values of lambda. Must have the same dimensional matrix (n by n) with mhspec.}
 
 \item{llh_fun}{user provided log-likelihood function.}
+
+\item{grad}{gradient matrix for the likelihood function. For more information, see \code{\link[maxLik]{maxLik}}.}
 
 \item{hess}{Hessian matrix for the likelihood function. For more information, see \code{\link[maxLik]{maxLik}}.}
 
@@ -34,8 +36,6 @@
 \item{method}{method for optimization. For more information, see \code{\link[maxLik]{maxLik}}.}
 
 \item{...}{other parameters for optimization. For more information, see \code{\link[maxLik]{maxLik}}.}
-
-\item{gard}{gradient matrix for the likelihood function. For more information, see \code{\link[maxLik]{maxLik}}.}
 }
 \description{
 This function uses \code{\link[maxLik]{maxLik}} for the optimizer.
@@ -55,14 +55,14 @@ MU2 <- matrix(c(0.2), nrow = 2)
 ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
 BETA2 <- matrix(c(2.90, 2.90, 2.90, 2.90), nrow = 2, byrow=TRUE)
 ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
-JUMP2 <- function(n,...) rgeom(n, 0.65) + 1
-mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+mark2 <- function(n,...) rgeom(n, 0.65) + 1
+mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, mark =mark2)
 res2 <- mhsim(mhspec2)
 
 # Perform maximum likelihood estimation
 summary(mhfit(mhspec2, arrival = res2$arrival, N = res2$N))
 summary(mhfit(mhspec2, inter_arrival = res2$inter_arrival,
-        mark = res2$mark2, jump_type = res2$jump_type))
+        mark = res2$mark2, mark_type = res2$mark_type))
 summary(mhfit(arrival = res2$arrival, N = res2$N))
 
 }

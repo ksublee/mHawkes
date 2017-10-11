@@ -6,6 +6,9 @@
 \usage{
 valid_mhspec(object)
 }
+\arguments{
+\item{object}{S4-class of mhspec}
+}
 \description{
 This function checks the validity of mhspec.
 For one dimensional case, if one of the parameter is not matrix, then all parameters should not be matrix.

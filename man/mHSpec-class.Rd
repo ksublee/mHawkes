@@ -20,7 +20,9 @@ The intensity of the ground process is defined by:
 
 \item{\code{ETA}}{numeric value or matrix. Shoud be a matrix for two or larger dimensional model.}
 
-\item{\code{Jump}}{a function that generate a random number with specific distribution.}
+\item{\code{mark}}{a function that generate a random number with specific distribution.}
+
+\item{\code{impact}}{a function that describe the mark impact}
 }}
 
 \examples{
@@ -28,6 +30,6 @@ MU2 <- matrix(c(0.2), nrow = 2)
 ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
 BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow=TRUE)
 ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
-JUMP2 <- function(n,...) rgeom(n, 0.65) + 1
-mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, Jump =JUMP2)
+mark2 <- function(n,...) rgeom(n, 0.65) + 1
+mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, mark = mark2)
 }

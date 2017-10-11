@@ -5,7 +5,7 @@
 #' @param res S3-object of mhreal
 #' @param n number of rows to diplay
 print.mhreal <- function(res, n=20){
-  options(digits=5)
+  options(digits=4)
   cat("------------------------------------------\n")
   cat("Simulation result of marked Hawkes model.\n")
   print(res$mhspec)
