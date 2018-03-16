@@ -31,7 +31,7 @@ library("mhawkes")
 ```
 
 Let's start with simple example.
-For exemplary purposes, one can simulate a one dimensional Hawkes model by simply calling ```mhsim```.
+For exemplary purposes, one can simulate a univariate Hawkes model by simply calling ```mhsim```.
 
 ```{r, warning=FALSE}
 mhsim()
@@ -40,7 +40,7 @@ mhsim()
 The model parameters are set to default with ```MU = 0.2```, ```ALPHA = 1.5``` and ```BETA = 2```.
 In addition, mark distribution is a constant function and all mark sizes are 1.
 
-### One dimensional Hawkes process
+### Univariate Hawkes process
 
 This subsection explaines how to construct, simulate, and estimate a one dimensional Hawkes model.
 Basically the Hawkes model can be defined up to 9 dimension in this package

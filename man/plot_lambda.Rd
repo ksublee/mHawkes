@@ -4,7 +4,7 @@
 \alias{plot_lambda}
 \title{Plot exponentially decaying lambda process}
 \usage{
-plot_lambda(arrival, lambda, beta, dt = NULL, ...)
+plot_lambda(arrival, lambda, beta, dt = NULL, xlab = "t", ylab = "lambda")
 }
 \arguments{
 \item{arrival}{a vector of arrival times.}
@@ -24,4 +24,5 @@ mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
 # Simulate with mhsim funciton.
 res1 <- mhsim(mhspec1,  n=100)
 plot_lambda(res1$arrival, res1$lambda, BETA1)
+
 }

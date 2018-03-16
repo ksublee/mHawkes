@@ -26,4 +26,5 @@ mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
 # Simulate with mhsim funciton.
 res1 <- mhsim(mhspec1,  n=100)
 dl <- dense_lambda(res1$arrival, res1$lambda, BETA1)
+
 }

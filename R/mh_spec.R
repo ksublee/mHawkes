@@ -11,6 +11,7 @@ setClassUnion("matrixORnumeric", c("matrix", "numeric"))
 #' The dimension of the model is less than 10.
 #'
 #' @param object S4-class of mhspec
+#' @export
 valid_mhspec <- function(object) {
 
   if(!is.matrix(object@MU) | !is.matrix(object@ALPHA) | !is.matrix(object@BETA) | (!is.null(object@ETA) & !is.matrix(object@ETA))){
@@ -18,7 +19,7 @@ valid_mhspec <- function(object) {
     # If one of the parameter is not matrix, then all parameters should not be matrix.
 
     if(!(!is.matrix(object@MU) & !is.matrix(object@ALPHA) & !is.matrix(object@BETA) & (!is.null(object@ETA) & !is.matrix(object@ETA)))){
-      show(object)
+      methods::show(object)
       return("If one of the parameter is not matrix, then all parameters should not be matrix.")
     }
 
@@ -32,7 +33,7 @@ valid_mhspec <- function(object) {
     else
       len_eta <- len_mu
     if (max(c(len_mu, len_alpha, len_beta, len_eta)) != 1 ){
-      show(object)
+      methods::show(object)
       return("If one of the parameter is atomic, then all parameters should be atomic.")
     }
 
@@ -53,28 +54,28 @@ valid_mhspec <- function(object) {
       return("The dimension of the model is too large.")
 
     if( max(c(dim_mu, dim_alpha, dim_beta, dim_eta)) != min(c(dim_mu, dim_alpha, dim_beta, dim_eta)) ){
-      show(object)
+      methods::show(object)
       return("The number of rows of parameter matrix should be equal.")
     }
 
     if ( ncol(object@MU) > 1 ){
-      show(object)
+      methods::show(object)
       return("The number of columns of MU matrix should be one.")
     }
 
     if ( ncol(object@ALPHA) != nrow(object@ALPHA) ){
-      show(object)
+      methods::show(object)
       return("ALPHA matrix should be n by n matrix.")
     }
 
     if ( ncol(object@BETA) != nrow(object@BETA) ){
-      show(object)
+      methods::show(object)
       return("BETA matrix should be n by n matrix.")
     }
 
     if ( !is.null(object@ETA) )
       if (ncol(object@ETA) != nrow(object@ETA) ){
-        show(object)
+        methods::show(object)
         return("ETA matrix should be n by n matrix.")
       }
   }
@@ -103,6 +104,8 @@ valid_mhspec <- function(object) {
 #' ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
 #' mark2 <- function(n,...) rgeom(n, 0.65) + 1
 #' mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, mark = mark2)
+#'
+#' @export
 setClass(
   "mhspec",
   slots = list(
@@ -149,7 +152,7 @@ setMethod(
     if ( stability_check==TRUE && max(abs(eigen(ALPHA/BETA)$values)) >= 1)
       warning("This model does not satisfy the stability condition.")
 
-    callNextMethod()
+    methods::callNextMethod()
 
     .Object
 
@@ -157,7 +160,7 @@ setMethod(
   }
 )
 
-
+#' @export
 setMethod(
   "show",
   "mhspec",
@@ -225,7 +228,7 @@ name_unique_coef_mtrx <- function(M, notation){
   reference
 }
 
-
+#' @export
 setMethod(
   "coef",
   "mhspec",

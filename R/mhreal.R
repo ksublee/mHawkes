@@ -107,6 +107,8 @@ summary.mhreal <- function(res, n=20){
 #' # Simulate with mhsim funciton.
 #' res1 <- mhsim(mhspec1,  n=100)
 #' get_lc_lambda(res1)
+#'
+#' @export
 get_lc_lambda <- function(res){
 
   dimens <- length(res$mhspec@MU)
@@ -133,16 +135,16 @@ get_lc_lambda <- function(res){
   lc_lambda_component
 }
 
-
+#' @export
 plot.mhreal <- function(res, ...){
 
   dimens <- ncol(res$N)
-  par(mfrow=c(dimens, 1))
+  graphics::par(mfrow=c(dimens, 1))
 
   n <- length(res$arrival)
 
   for (i in 1:dimens) {
-    plot(res$arrival[1:n], res$N[ ,i][1:n], 's', xlab='t', ylab=colnames(res$N)[i])
+    graphics::plot(res$arrival[1:n], res$N[ ,i][1:n], 's', xlab='t', ylab=colnames(res$N)[i])
     #points(res$arrival[1:n], res$N[ ,i][1:n])
   }
 
@@ -166,8 +168,10 @@ plot.mhreal <- function(res, ...){
 #' # Simulate with mhsim funciton.
 #' res1 <- mhsim(mhspec1,  n=100)
 #' dl <- dense_lambda(res1$arrival, res1$lambda, BETA1)
+#'
+#' @export
 dense_lambda <- function(arrival, lambda, beta, dt = NULL, ...){
-  maxT <- tail(arrival, n=1)
+  maxT <- utils::tail(arrival, n=1)
 
   if (is.null(dt)){
     inter_arrival <- arrival[-1] - arrival[-length(arrival)]
@@ -214,10 +218,12 @@ dense_lambda <- function(arrival, lambda, beta, dt = NULL, ...){
 #' # Simulate with mhsim funciton.
 #' res1 <- mhsim(mhspec1,  n=100)
 #' plot_lambda(res1$arrival, res1$lambda, BETA1)
-plot_lambda <- function(arrival, lambda, beta, dt = NULL, ...){
+#'
+#' @export
+plot_lambda <- function(arrival, lambda, beta, dt = NULL, xlab='t', ylab='lambda'){
 
   result <- dense_lambda(arrival, lambda, beta, dt)
-  plot(result[, "arrival"], result[, "lambda"], 'l', xlab='t', ylab='lambda')
+  graphics::plot(result[, "arrival"], result[, "lambda"], 'l', xlab = xlab, ylab = ylab)
 
 }
 

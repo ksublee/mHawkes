@@ -68,7 +68,7 @@ setMethod(
 
     # default LAMBDA0
     if(is.null(LAMBDA0)) {
-      warning("The initial values for intensity processes are not provided. Internally determined initial values are set.\n")
+      warning("The initial values for intensity processes are not provided. Internally determined initial values are used.\n")
 
       if (dimens == 1){
         #default LAMBDA0 with dimesion 1
@@ -116,12 +116,12 @@ setMethod(
 
       # Generate candidate arrivals
       # arrival due to mu
-      candidate_arrival <- rexp(dimens, rate = MU)
+      candidate_arrival <- stats::rexp(dimens, rate = MU)
       current_LAMBDA <- matrix(as.numeric(lambda_component[i-1, ]), nrow = dimens, byrow = TRUE)
 
       # arrival due to components
 
-      matrixD <- 1 + BETA * log(runif(dimens^2)) / current_LAMBDA
+      matrixD <- 1 + BETA * log(stats::runif(dimens^2)) / current_LAMBDA
       candidate_arrival <- cbind(candidate_arrival, -1 / BETA * log(pmax(matrixD, 0)))
 
       # The minimum is inter arrival time
@@ -182,7 +182,7 @@ setMethod(
       ALPHA1 <- 1.5
       BETA1 <- 2
 
-      mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+      mhspec1 <- methods::new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
 
       mhsim(mhspec1, n = n)
 
@@ -192,7 +192,7 @@ setMethod(
       ALPHA2 <- matrix(c(0.7, 0.9, 0.9, 0.7), nrow = 2, byrow=TRUE)
       BETA2 <- matrix(c(2, 2, 2, 2), nrow = 2, byrow=TRUE)
 
-      mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2)
+      mhspec2 <- methods::new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2)
       mhsim(mhspec2, n = n)
 
     } else {

@@ -7,8 +7,7 @@
 \usage{
 \S4method{mhfit}{mhspec}(object, arrival = NULL, inter_arrival = NULL,
   N = NULL, mark_type = NULL, mark = NULL, LAMBDA0 = NULL,
-  llh_fun = NULL, grad = NULL, hess = NULL, constraint = NULL,
-  method = "BFGS", ...)
+  grad = NULL, hess = NULL, constraint = NULL, method = "BFGS", ...)
 }
 \arguments{
 \item{object}{mhspec, or can be omitted.}
@@ -24,8 +23,6 @@
 \item{mark}{a vector of mark (jump) sizes. Start with zero.}
 
 \item{LAMBDA0}{the starting values of lambda. Must have the same dimensional matrix (n by n) with mhspec.}
-
-\item{llh_fun}{user provided log-likelihood function.}
 
 \item{grad}{gradient matrix for the likelihood function. For more information, see \code{\link[maxLik]{maxLik}}.}
 
@@ -62,7 +59,7 @@ res2 <- mhsim(mhspec2)
 # Perform maximum likelihood estimation
 summary(mhfit(mhspec2, arrival = res2$arrival, N = res2$N))
 summary(mhfit(mhspec2, inter_arrival = res2$inter_arrival,
-        mark = res2$mark2, mark_type = res2$mark_type))
+        mark = res2$mark, mark_type = res2$mark_type))
 summary(mhfit(arrival = res2$arrival, N = res2$N))
 
 }

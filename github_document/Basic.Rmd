@@ -179,8 +179,8 @@ res1 <- mhsim(mhspec1,  n=10)
 
 Plot the realized processes.
 
-```{r}
-# plot(res1$arrival, res1$N[,'N1'], 's', xlab="t", ylab="N")
+```{r, fig.height = 3, fig.width = 5}}
+plot(res1$arrival, res1$N[,'N1'], 's', xlab="t", ylab="N")
 ```
 
 
@@ -190,26 +190,30 @@ For a simple example, one can simulate a two-dimensional Hawkes process with def
 ```{r}
 mhsim(dimens=2)
 ```
-The default parameters are set to be ```MU <- matrix(c(0.2), nrow = 2)```, ```ALPHA <- matrix(c(0.7, 0.9, 0.9, 0.7), byrow=TRUE)``` and ```BETA <- matrix(c(2, 2, 2, 2), nrow = 2)```.
+The default parameters are set to be ```MU = matrix(c(0.2), nrow = 2)```, ```ALPHA = matrix(c(0.7, 0.9, 0.9, 0.7), byrow=TRUE)``` and ```BETA = matrix(c(2, 2, 2, 2), nrow = 2)```.
 
 
-In general, the parameters, the slots of ```mhspec```,  are set by matrices.
+In two dimensional model, the parameters, the slots of ```mhspec```, are  matrices.
 ```MU``` is 2-by-1, and ```ALPHA, BETA, ETA``` are 2-by-2 matrices.
-```mark``` is a random number generatring fucntion.
-```LAMBDA0```, 2-by-2 matrix, represents the initial values of ```lambda_component```.
+```mark``` is a random number generating function.
+```LAMBDA0```, 2-by-2 matrix, represents the initial values of ```lambda_component```, a set of ```lambda11, lambda12, lambda21, lambda22```.
 The intensity processes are represented by 
 
 $$ \lambda_1(t) = \mu_1 + \lambda_{11}(t) + \lambda_{12}(t) $$
+
 $$ \lambda_2(t) = \mu_2 + \lambda_{21}(t) + \lambda_{22}(t) $$
-$\lambda_{ij}$ are lambda components and ```LAMBDA0``` represents $\lambda_{ij}(0)$. 
+
+$\lambda_{ij}$ called lambda components and ```LAMBDA0``` is the time zero values of $lambda_{ij}$, i.e., $\lambda_{ij}(0)$. 
+```LAMBDA0``` can be omitted and then internally determined initial values are used.
+
 
 ```{r}
 MU2 <- matrix(c(0.2), nrow = 2)
-ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow=TRUE)
-BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow=TRUE)
-ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow=TRUE)
+ALPHA2 <- matrix(c(0.75, 0.92, 0.92, 0.75), nrow = 2, byrow = TRUE)
+BETA2 <- matrix(c(2.25, 2.25, 2.25, 2.25), nrow = 2, byrow = TRUE)
+ETA2 <- matrix(c(0.19, 0.19, 0.19, 0.19), nrow = 2, byrow = TRUE)
 mark_fun <- function(n,...) rgeom(n, 0.65) + 1
-LAMBDA0 <- matrix(c(0.1, 0.1, 0.1, 0.1), nrow = 2, byrow=TRUE)
+LAMBDA0 <- matrix(c(0.1, 0.1, 0.1, 0.1), nrow = 2, byrow = TRUE)
 mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, mark =mark_fun)
 ```
 
@@ -218,31 +222,32 @@ mhspec2
 ```
 
 To simulate, use function ```mhsim```.
+The result is ```mhreal`` as in one dimensional case.
 
 ```{r}
 res2 <- mhsim(mhspec2,  n=5000)
 summary(res2)
 ```
 
-Plot N.
+Plot the Hawkes process, N1, using ```plot``` function.
 
-```{r}
-# plot(res2$arrival[1:10], res2$N[1:10,1], 's')
+```{r, fig.height = 3, fig.width = 5}
+plot(res2$arrival[1:20], res2$N[1:20,1], 's', xlab = "t", ylab = "N1")
 ```
 
-```{r}
-# plot(res2)
-```
+Plot the intensity process, ```lambda1```, using ```plot_lambda``` function.
 
-
-Plot lambda.
-
-```{r}
-# plotlambda(res2$arrival[1:10], res2$lambda[1:10,1], BETA2[1,1])
+```{r, fig.height = 3, fig.width = 5}}
+plot_lambda(res2$arrival[1:20], res2$lambda[1:20,1], beta = BETA2[1,1], xlab = "t", ylab = "lambda1")
 ```
 
 
-Frome the result, we get a vector of realized inter arrival times.
+Frome the result, we get a vector of realized ```inter_arrival```, ```mark```, and ```mark_type```.
+In one-dimensional case, ```inter_arrival``` is only needed to represent the realized path.
+Unlike the one-dimensional case, the two-dimensional case requires ```inter_arrival```, ```mark```, and ```mark_type```.
+```mark``` is a vector of mark size and ```mark_type``` represensts the type of events, in this case, 1 or 2.
+
+
 ```{r}
 inter_arrival2 <- res2$inter_arrival
 mark2 <- res2$mark
@@ -256,7 +261,10 @@ logLik(mhspec2, inter_arrival = inter_arrival2, mark_type = mark_type2, mark = m
 ```
 
 A log-likelihood estimation is performed using ```mhfit```.
-```mhspec0``` is regarded as a starting point of the numerical optimization.
+In the following, the values of parameter slots in ```mhspec0```, such as ```MU, ALPHA, BETA```, are regarded as a starting point of the numerical optimization.
+For simplicity, we use ```mhspec0 <- mhspec2```.
+Since the true parameter values are not known in the actual problem, the initial value should be guessed.
+The realized ```inter_arrival``` and ```mark_type``` are used.
 
 ```{r, warning=FALSE, error=FALSE}
 mhspec0 <- mhspec2
@@ -264,9 +272,14 @@ mle <- mhfit(mhspec0, inter_arrival = inter_arrival2, mark_type = mark_type2, ma
 summary(mle)
 ```
 
-One can estimate using ```N``` and ```inter_arrival``` with the same result.
+One can estimate the Hawkes model using ```N``` and ```inter_arrival``` instead of ```inter_arrival```, ```mark_type```, and ```mark``` with the same result.
 ```{r, warning=FALSE, error=FALSE}
 summary(mhfit(mhspec0, inter_arrival = inter_arrival2, N = res2$N))
+```
+
+Although the initial value, ```mhspec0``` can be omitted, but it is recommended to set an appropriate value for ```mhspec0```.
+```{r, warning=FALSE, error=FALSE}
+summary(mhfit(inter_arrival = inter_arrival2, mark_type = mark_type2, mark = mark2))
 ```
 
 ### Parameter setting 
@@ -373,7 +386,7 @@ summary(maxLik::maxLik(logLik = my_llh_fun,
 
 ### Dependence structure for mark
 
-The mark distribution may be dependent with other underlying processes.
+The mark distribution can depend on other underlying processes.
 For example, consider a marked Hawkes model with conditional geometric distribution marks and
 the distribution depends on the current value of the intensity process.
 In the following, ```lambda``` is a matrix, and ```mark_type``` is a numeric vector, ```i``` denotes the time index.
@@ -457,5 +470,29 @@ The result 12.76% is annualised return volatility.
 ```{r}
 variance <- var_diff(mhspec_estimate, mean_jump=mean(mark), mean_jump_square=mean(mark^2), time_length=60*60*5.5*252)*(0.005/mean(price))^2
 (annualized_volatility <- sqrt(variance))
+```
+
+
+### Multi-dimensional Hawkes
+
+In this package, one or two-dimensional model is recommended, but actually works adequately for models of more than three dimensions.
+The method for simulation and estimation is very similar to the previous one.
+
+```{r}
+MU3 <- matrix(rep(0.2, 3), nrow = 3)
+ALPHA3 <- matrix(c(0.7, 0.50, 0.60, 0.50, 0.70, 0.40, 0.6, 0.4, 0.7), nrow = 3, byrow=TRUE)
+BETA3 <- matrix(rep(2.7, 9), nrow = 3, byrow=TRUE)
+ETA3 <- matrix(rep(0.2, 9), nrow = 3, byrow=TRUE)
+mark_function <- function(n,...) rgeom(n, 0.65) + 1
+
+mhspec3 <- new("mhspec", MU=MU3, ALPHA=ALPHA3, BETA=BETA3, ETA=ETA3, mark = mark_function)
+res3 <- mhsim(mhspec3, n=1000, LAMBDA0 = matrix(rep(0.3, 9), nrow=3))
+summary(res3)
+```
+
+
+```{r, warning=FALSE}
+mhspec0 <- mhspec3
+summary(mhfit(mhspec3, arrival = res3$arrival, N = res3$N))
 ```
 

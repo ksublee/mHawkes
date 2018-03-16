@@ -166,7 +166,7 @@ setGeneric("mhfit", function(object, ...) standardGeneric("mhfit"))
 #' # Perform maximum likelihood estimation
 #' summary(mhfit(mhspec2, arrival = res2$arrival, N = res2$N))
 #' summary(mhfit(mhspec2, inter_arrival = res2$inter_arrival,
-#'         mark = res2$mark2, mark_type = res2$mark_type))
+#'         mark = res2$mark, mark_type = res2$mark_type))
 #' summary(mhfit(arrival = res2$arrival, N = res2$N))
 #'
 #' @seealso \code{\link{mhspec-class}}, \code{\link{mhsim,mhspec-method}}
@@ -189,8 +189,19 @@ setMethod(
     }
 
     # argument check
-    if(dimens != 1 & is.null(N) & (is.null(mark_type) | is.null(mark)) ){
-      stop("One of N or (mark and mark_type) should be provided.")
+
+    if(dimens != 1 & is.null(N) &  is.null(mark) ){
+
+      stop("One of N or mark should be provided.")
+
+      if(is.null(mark_type)){
+
+        warning("Mark type is not provided. Default values are used.")
+
+        mark_type <- c(0, rep(1, length(mark)-1))
+
+      }
+
     } else if(dimens != 1 & (is.null(mark_type) | is.null(mark)) ){
 
       if(!is.matrix(N)) stop("N should be a matrix.")
@@ -313,7 +324,7 @@ setMethod(
         }
       }
 
-      mhspec0 <- new("mhspec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, mark=object@mark)
+      mhspec0 <- methods::new("mhspec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, mark=object@mark)
 
 
       llh <- logLik(mhspec0, inter_arrival = inter_arrival, mark_type = mark_type, mark = mark, LAMBDA0)
@@ -385,7 +396,7 @@ setMethod(
       BETA1 <- 2
       ETA1 <- 0
 
-      mhspec0 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1)
+      mhspec0 <- methods::new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1)
 
     } else if(dimens == 2){
 
@@ -394,7 +405,7 @@ setMethod(
       BETA2 <- matrix(c(2.90, 2.90, 2.90, 2.90), nrow = 2, byrow=TRUE)
       ETA2 <- matrix(c(0, 0, 0, 0), nrow = 2, byrow=TRUE)
 
-      mhspec0 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2)
+      mhspec0 <- methods::new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2)
     }
 
     if (is.null(mark)){

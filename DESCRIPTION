@@ -11,6 +11,7 @@ License: What license is it under?
 Encoding: UTF-8
 LazyData: true
 Imports: maxLik
+Depends: R (>= 2.10)
 RoxygenNote: 6.0.1
 Suggests: knitr,
     rmarkdown
