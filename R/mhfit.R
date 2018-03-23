@@ -53,31 +53,8 @@ setMethod(
 
     # default LAMBDA0
     if(is.null(LAMBDA0)) {
-
-      if (dimens == 1){
-        lamb0 <- (MU[1]*BETA[1]/(BETA[1]- ALPHA[1]) - MU[1])/2
-        LAMBDA0 <- matrix(rep(lamb0, dimens^2), nrow=dimens, byrow=TRUE)
-
-      } else if (dimens == 2) {
-
-        #default LAMBDA0 with dimesion 2
-        LAMBDA0 <- matrix(rep(0, dimens^2), nrow=dimens)
-
-        H <- ALPHA[1,1]*BETA[1,2]*BETA[2,1]*(ALPHA[2,2] - BETA[2,2]) - BETA[1,1]*(ALPHA[2,2]*BETA[1,2]*BETA[2,1] + ALPHA[1,2]*ALPHA[2,1]*BETA[2,2] - BETA[1,2]*BETA[2,1]*BETA[2,2])
-
-        LAMBDA0[1, 1] <- ALPHA[1,1]*BETA[2,1]* ((BETA[2,2] - ALPHA[2,2])*BETA[1,2]*MU[1] + ALPHA[1,2]*BETA[2,2]*MU[2]) / H
-        LAMBDA0[1, 2] <- ALPHA[1,2]*BETA[2,2]* ((BETA[1,1] - ALPHA[1,1])*BETA[2,1]*MU[2] + ALPHA[2,1]*BETA[1,1]*MU[1]) / H
-        LAMBDA0[2, 1] <- ALPHA[2,1]*BETA[1,1]* ((BETA[2,2] - ALPHA[2,2])*BETA[1,2]*MU[1] + ALPHA[1,2]*BETA[2,2]*MU[2]) / H
-        LAMBDA0[2, 2] <- ALPHA[2,2]*BETA[1,2]* ((BETA[1,1] - ALPHA[1,1])*BETA[2,1]*MU[2] + ALPHA[2,1]*BETA[1,1]*MU[1]) / H
-
-
-      } else {
-        # for higher dimension, default LAMBDA0 will be ...
-        lamb0 <- (MU[1]*BETA[1]/(BETA[1]- sum(ALPHA[1:dimens])) - MU[1])/2
-        LAMBDA0 <- matrix(rep(lamb0, dimens^2), nrow=dimens, byrow=TRUE)
-      }
+       LAMBDA0 <- get_lambda0(object)
     }
-
 
     # n is length(inter_arrival) - 1
     n <- length(inter_arrival) - 1
@@ -181,40 +158,67 @@ setMethod(
     dimens <- length(object@MU)
 
 
-    # argument check
+    # argument check : one of arrival or inter_arrival is needed
     if(is.null(arrival) & is.null(inter_arrival)){
       stop("One of arrival or inter_arrival should be provided.")
     } else if(is.null(inter_arrival)){
       inter_arrival <- c(0, arrival[-1] - arrival[-length(arrival)])
     }
 
-    # argument check
+    # argument check for two or higher dimension
+    if(dimens != 1){
 
-    if(dimens != 1 & is.null(N) &  is.null(mark) ){
+      if(!is.null(N)){
+        # when N is provided as matrix, it's ok to proceed.
+        if(!is.matrix(N)) stop("N should be a matrix.")
 
-      stop("One of N or mark should be provided.")
+        # extract mark_type from N, when mark_type is null
+        if(is.null(mark_type)){
 
-      if(is.null(mark_type)){
+          mark_type <- numeric(nrow(N))
 
-        warning("Mark type is not provided. Default values are used.")
+          for (i in 2:nrow(N)){
+            mark_type[i] <- which(N[i,] != N[i-1,])
+          }
+        }
 
-        mark_type <- c(0, rep(1, length(mark)-1))
 
-      }
+        # extrat mark from N, when mark is null
 
-    } else if(dimens != 1 & (is.null(mark_type) | is.null(mark)) ){
+        if(is.null(mark)){
+          mark <- numeric(nrow(N))
 
-      if(!is.matrix(N)) stop("N should be a matrix.")
+          for (i in 2:nrow(N)){
+            mark[i] <- N[i, mark_type[i]] - N[i-1, mark_type[i]]
+          }
+        }
 
-      mark_type <- numeric(nrow(N))
-      mark <- numeric(nrow(N))
 
-      for (i in 2:nrow(N)){
-        mark_type[i] <- which(N[i,] != N[i-1,])
-        mark[i] <- N[i, mark_type[i]] - N[i-1, mark_type[i]]
+
+      } else {
+        # when N is not provided as matrix, at least we need mark_type
+
+        if(is.null(mark_type)){
+
+          stop("One of N or mark_type should be provided.")
+
+        } else {
+
+          if(is.null(mark)){
+
+            # if mark is not provided, default values with 1 are used.
+            warning("Mark is not provided. Default values are used.")
+
+            mark <- c(0, rep(1, length(mark_type-1)))
+
+          }
+
+        }
+
       }
 
     }
+
 
     if(is.null(LAMBDA0)){
       warning("The initial values for intensity processes are not provided. Internally determined initial values are used.\n")
@@ -326,13 +330,10 @@ setMethod(
 
       mhspec0 <- methods::new("mhspec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, mark=object@mark)
 
-
       llh <- logLik(mhspec0, inter_arrival = inter_arrival, mark_type = mark_type, mark = mark, LAMBDA0)
       return(llh)
 
     }
-
-
 
     maxLik::maxLik(logLik=llh_function,
                     start=starting_point, grad, hess, constraint, method = method)

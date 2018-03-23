@@ -67,28 +67,10 @@ setMethod(
     ETA <- object@ETA
 
     # default LAMBDA0
+    # default LAMBDA0
     if(is.null(LAMBDA0)) {
       warning("The initial values for intensity processes are not provided. Internally determined initial values are used.\n")
-
-      if (dimens == 1){
-        #default LAMBDA0 with dimesion 1
-        LAMBDA0 <- (MU * BETA / (BETA - ALPHA) - MU) / 2
-      } else if (dimens == 2) {
-        #default LAMBDA0 with dimesion 2
-        LAMBDA0 <- matrix(rep(0, dimens^2), nrow=dimens)
-
-        H <- ALPHA[1,1]*BETA[1,2]*BETA[2,1]*(ALPHA[2,2] - BETA[2,2]) - BETA[1,1]*(ALPHA[2,2]*BETA[1,2]*BETA[2,1] + ALPHA[1,2]*ALPHA[2,1]*BETA[2,2] - BETA[1,2]*BETA[2,1]*BETA[2,2])
-
-        LAMBDA0[1, 1] <- ALPHA[1,1]*BETA[2,1]* ((BETA[2,2] - ALPHA[2,2])*BETA[1,2]*MU[1] + ALPHA[1,2]*BETA[2,2]*MU[2]) / H
-        LAMBDA0[1, 2] <- ALPHA[1,2]*BETA[2,2]* ((BETA[1,1] - ALPHA[1,1])*BETA[2,1]*MU[2] + ALPHA[2,1]*BETA[1,1]*MU[1]) / H
-        LAMBDA0[2, 1] <- ALPHA[2,1]*BETA[1,1]* ((BETA[2,2] - ALPHA[2,2])*BETA[1,2]*MU[1] + ALPHA[1,2]*BETA[2,2]*MU[2]) / H
-        LAMBDA0[2, 2] <- ALPHA[2,2]*BETA[1,2]* ((BETA[1,1] - ALPHA[1,1])*BETA[2,1]*MU[2] + ALPHA[2,1]*BETA[1,1]*MU[1]) / H
-
-      } else {
-        # for higher dimension, default LAMBDA0 will be ...
-        lamb0 <- (MU[1]*BETA[1]/(BETA[1]- sum(ALPHA[1:dimens])) - MU[1])/2
-        LAMBDA0 <- matrix(rep(lamb0, dimens^2), nrow=dimens, byrow=TRUE)
-      }
+      LAMBDA0 <- get_lambda0(object)
     }
 
     # Preallocation for lambdas and Ns and set initial values for lambdas

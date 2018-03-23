@@ -1,3 +1,22 @@
+setGeneric("get_lambda0", function(object, ...) standardGeneric("get_lambda0"))
+
+setMethod(
+  f = "get_lambda0",
+  signature(object = "mhspec"),
+  definition = function(object){
+    dimens <- length(object@MU)
+    if (dimens == 1){
+      lamb0 <- (MU[1]*BETA[1]/(BETA[1]- ALPHA[1]) - MU[1])/2
+      LAMBDA0 <- matrix(rep(lamb0, dimens^2), nrow=dimens, byrow=TRUE)
+
+    } else {
+      LAMBDA_st <- solve(diag(dimens) - ALPHA / BETA) %*% MU
+      LAMBDA0 <- matrix(rep(LAMBDA_st, dimens), nrow=dimens, byrow=T) * ALPHA/BETA
+    }
+    LAMBDA0
+  }
+)
+
 setGeneric("mean_lambda", function(object, ...) standardGeneric("mean_lambda"))
 
 #' Compute the long-run mean of lambda

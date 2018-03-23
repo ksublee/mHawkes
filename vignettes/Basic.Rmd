@@ -65,7 +65,7 @@ are ommited and set to be default values.
 ```{r}
 set.seed(1107)
 MU1 <- 0.3; ALPHA1 <- 1.2; BETA1 <- 1.5
-mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1)
+mhspec1 <- new("mhspec", MU = MU1, ALPHA = ALPHA1, BETA = BETA1)
 show(mhspec1)
 ```
 
@@ -174,7 +174,7 @@ In the following, the mark follows geometric distribution.
 ```{r}
 ETA1 <- 0.15
 mark_function <- function(n,...) rgeom(n, 0.65) + 1
-mhspec1 <- new("mhspec", MU=MU1, ALPHA=ALPHA1, BETA=BETA1, ETA=ETA1, mark=mark_function)
+mhspec1 <- new("mhspec", MU = MU1, ALPHA = ALPHA1, BETA = BETA1, ETA = ETA1, mark = mark_function)
 ```
 ```{r}
 res1 <- mhsim(mhspec1,  n=10)
