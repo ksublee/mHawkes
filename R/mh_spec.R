@@ -167,27 +167,23 @@ setMethod(
   function(object){
 
     dimens <- length(object@MU)
-    cat(paste0(toString(dimens), "-dimensional (marked) Hawkes model with linear impact function.\n"))
+    cat(paste0(toString(dimens), "-variate (marked) Hawkes model with linear impact function.\n"))
     cat("The intensity process is defined by\n")
-    cat("LAMBDA(t) = MU + int ALPHA %/% BETA (1+(k-1)ETA) %*% exp(-BETA(t-u)) d N(t)\n" )
+    cat("LAMBDA(t) = MU + int ALPHA / BETA * (1 + (k - 1) * ETA) * exp(-BETA * (t - u)) d N(u)\n" )
     cat("\n")
     cat("Parameters: \n")
 
-    MU <- object@MU
     cat("MU: \n")
-    print(MU)
+    print(object@MU)
 
-    ALPHA <- object@ALPHA
     cat("ALPHA: \n")
-    print(ALPHA)
+    print(object@ALPHA)
 
-    BETA <- object@BETA
     cat("BETA: \n")
-    print(BETA)
+    print(object@BETA)
 
-    ETA <- object@ETA
     cat("ETA: \n")
-    print(ETA)
+    print(object@ETA)
 
     cat("Mark distribution: \n")
     print(object@mark)
