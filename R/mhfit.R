@@ -53,7 +53,8 @@ setMethod(
 
     # default LAMBDA0
     if(is.null(LAMBDA0)) {
-       LAMBDA0 <- get_lambda0(object)
+      warning("The initial values for intensity processes are not provided. Internally determined initial values are used.\n")
+      LAMBDA0 <- get_lambda0(object)
     }
 
     # n is length(inter_arrival) - 1
@@ -417,6 +418,204 @@ setMethod(
     mhfit(mhspec0, inter_arrival = inter_arrival, mark_type = mark_type, mark = mark,
           grad=grad, hess=hess, constraint=constraint, method = method)
 
+
+  }
+)
+
+
+setGeneric("mhfit0", function(object, ...) standardGeneric("mhfit0"))
+
+setMethod(
+  f="mhfit0",
+  signature(object="mhspec"),
+  function(object, arrival = NULL, inter_arrival = NULL, N = NULL,
+           mark_type = NULL, mark = NULL, LAMBDA0 = NULL,
+           grad = NULL, hess = NULL, constraint = NULL, method = "BFGS",  ...){
+
+    # dimension of Hawkes process
+    dimens <- length(object@MU)
+
+
+    # argument check : one of arrival or inter_arrival is needed
+    if(is.null(arrival) & is.null(inter_arrival)){
+      stop("One of arrival or inter_arrival should be provided.")
+    } else if(is.null(inter_arrival)){
+      inter_arrival <- c(0, arrival[-1] - arrival[-length(arrival)])
+    }
+
+    # argument check for two or higher dimension
+    if(dimens != 1){
+
+      if(!is.null(N)){
+        # when N is provided as matrix, it's ok to proceed.
+        if(!is.matrix(N)) stop("N should be a matrix.")
+
+        # extract mark_type from N, when mark_type is null
+        if(is.null(mark_type)){
+
+          mark_type <- numeric(nrow(N))
+
+          for (i in 2:nrow(N)){
+            mark_type[i] <- which(N[i,] != N[i-1,])
+          }
+        }
+
+
+        # extrat mark from N, when mark is null
+
+        if(is.null(mark)){
+          mark <- numeric(nrow(N))
+
+          for (i in 2:nrow(N)){
+            mark[i] <- N[i, mark_type[i]] - N[i-1, mark_type[i]]
+          }
+        }
+
+
+
+      } else {
+        # when N is not provided as matrix, at least we need mark_type
+
+        if(is.null(mark_type)){
+
+          stop("One of N or mark_type should be provided.")
+
+        } else {
+
+          if(is.null(mark)){
+
+            # if mark is not provided, default values with 1 are used.
+            warning("Mark is not provided. Default values are used.")
+
+            mark <- c(0, rep(1, length(mark_type-1)))
+
+          }
+
+        }
+
+      }
+
+    }
+
+
+    if(is.null(LAMBDA0)){
+      warning("The initial values for intensity processes are not provided. Internally determined initial values are used.\n")
+    }
+
+    # When the mark sizes are not provided or max(mark) == 1, the jumps are all unit jumps.
+    unit <- FALSE
+    if(is.null(mark) | max(mark) == 1) {
+      mark <- c(0, rep(1, length(inter_arrival)-1))
+      unit <- TRUE
+    }
+
+
+    # parameter setting
+    MU <- matrix(object@MU, nrow=dimens)
+    ALPHA <- matrix(object@ALPHA, nrow=dimens)
+    BETA <- matrix(object@BETA, nrow=dimens)
+    ETA <- matrix(object@ETA, nrow=dimens)
+
+
+    ref_mu <- name_unique_coef_mtrx(MU, "mu")
+    unique_mus <- unique(as.vector(MU))
+    names(unique_mus) <- unique(ref_mu)
+
+    # ref_alpha looks like ["alpha11", "alpha12", "alpha12", "alpha11"] when alpha11==alpha22, alpha12==alpha21
+    ref_alpha <- name_unique_coef_mtrx(ALPHA, "alpha")
+    unique_alphas <- unique(as.vector(t(ALPHA)))
+    names(unique_alphas) <-  unique(ref_alpha)
+
+
+    ref_beta <- name_unique_coef_mtrx(BETA, "beta")
+    unique_betas <- unique(as.vector(t(BETA)))
+    names(unique_betas) <-  unique(ref_beta)
+
+    # constant unit jump or not
+    if (unit) starting_point <- c(unique_mus, unique_alphas, unique_betas)
+    else {
+      ref_eta <- name_unique_coef_mtrx(ETA, "eta")
+      unique_etas <- unique(as.vector(t(ETA)))
+      names(unique_etas) <-  unique(ref_eta)
+      starting_point <- c(unique_mus, unique_alphas, unique_betas, unique_etas)
+    }
+
+    len_mu <- length(unique_mus)
+    len_alpha <- length(unique_alphas)
+    len_beta <- length(unique_betas)
+
+    if (!unit) len_eta <- length(unique_etas)
+    else len_eta <- 0
+
+    # constraint matrix
+    # mu, alpha, beta should be larger than zero
+    if (unit) A <- diag(1, nrow = length(starting_point) - len_eta)
+    else A <- cbind(diag(1, nrow = length(starting_point) - length(unique_etas)), rep(0, length(starting_point) - length(unique_etas)))
+
+
+    # constraint : sum of alpha < beta
+    A <- rbind(A, c(0, rep(-1, len_alpha), 1, rep(0, len_eta)))
+    B <- rep(0, nrow(A))
+
+
+    # loglikelihood function for maxLik
+
+    llh_function <- function(param){
+
+      # redefine unique vectors from param
+      unique_mus <- param[1:len_mu]
+      unique_alphas <- param[(len_mu + 1):(len_mu + len_alpha)]
+      unique_betas <- param[(len_mu + len_alpha + 1):(len_mu + len_alpha + len_beta)]
+      if (!unit) unique_etas <- param[(len_mu + len_alpha + len_beta + 1):(len_mu + len_alpha + len_beta + len_eta)]
+
+      # retreive MU, ALPHA, BETA, ETA matrix
+      MU <- matrix( rep(0, dimens))
+      i <- 1
+      for  (m in 1:dimens){
+        MU[m] <- unique_mus[ref_mu[i]]
+        i <- i + 1
+      }
+
+      ALPHA <- matrix( rep(0, dimens^2), nrow=dimens)
+      i <- 1
+      for  (m in 1:dimens){
+        for (n in 1:dimens) {
+          ALPHA[m,n] <- unique_alphas[ref_alpha[i]]
+          i <- i + 1
+        }
+      }
+
+      BETA <- matrix( rep(0, dimens^2), nrow=dimens)
+      i <- 1
+      for  (m in 1:dimens){
+        for (n in 1:dimens) {
+          BETA[m,n] <- unique_betas[ref_beta[i]]
+          i <- i + 1
+        }
+      }
+
+      if (unit) ETA <- matrix(rep(0, dimens^2), nrow=dimens)
+      else{
+        ETA <- matrix( rep(0, dimens^2), nrow=dimens)
+        i <- 1
+        for  (m in 1:dimens){
+          for (n in 1:dimens) {
+            ETA[m,n] <- unique_etas[ref_eta[i]]
+            i <- i + 1
+          }
+        }
+      }
+
+      mhspec0 <- methods::new("mhspec", MU=MU, ALPHA=ALPHA, BETA=BETA, ETA=ETA, mark=object@mark)
+
+      llh <- logLik(mhspec0, inter_arrival = inter_arrival, mark_type = mark_type, mark = mark, LAMBDA0)
+      return(llh)
+
+    }
+
+    optim(par = starting_point, fn = llh_function, method = "BFGS")
+    #maxLik::maxLik(logLik=llh_function,
+    #               start=starting_point, grad, hess, constraint, method = method)
 
   }
 )

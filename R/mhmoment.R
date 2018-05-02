@@ -1,17 +1,19 @@
 setGeneric("get_lambda0", function(object, ...) standardGeneric("get_lambda0"))
-
+#' Get the long-run component of LAMBDA matrix
+#'
+#' @param object mhspec
 setMethod(
   f = "get_lambda0",
   signature(object = "mhspec"),
   definition = function(object){
     dimens <- length(object@MU)
     if (dimens == 1){
-      lamb0 <- (MU[1]*BETA[1]/(BETA[1]- ALPHA[1]) - MU[1])/2
+      lamb0 <- (object@MU[1]*object@BETA[1]/(object@BETA[1]- object@ALPHA[1]) - object@MU[1])/2
       LAMBDA0 <- matrix(rep(lamb0, dimens^2), nrow=dimens, byrow=TRUE)
 
     } else {
-      LAMBDA_st <- solve(diag(dimens) - ALPHA / BETA) %*% MU
-      LAMBDA0 <- matrix(rep(LAMBDA_st, dimens), nrow=dimens, byrow=T) * ALPHA/BETA
+      LAMBDA_st <- solve(diag(dimens) - object@ALPHA / object@BETA) %*% object@MU
+      LAMBDA0 <- matrix(rep(LAMBDA_st, dimens), nrow=dimens, byrow=T) * object@ALPHA / object@BETA
     }
     LAMBDA0
   }
