@@ -41,6 +41,8 @@ setGeneric("mhsim", function(object, ...) standardGeneric("mhsim"))
 #' class(res2)
 #' summary(res2)
 #' as.matrix(res2)
+#'
+#' @export
 setMethod(
   f="mhsim",
   signature(object = "mhspec"),
@@ -153,6 +155,9 @@ setMethod(
   }
 )
 
+#' Default simulation
+#'
+#' @export
 setMethod(
   "mhsim",
   signature("missing"),
@@ -179,7 +184,7 @@ setMethod(
 
     } else {
 
-      stop("One or two dimesinoal models is supported for default simulation.")
+      stop("Uni- or Bi-variate model is supported for default simulation.")
     }
 
 

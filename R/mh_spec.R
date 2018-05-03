@@ -119,6 +119,7 @@ setClass(
   validity = valid_mhspec
 )
 
+#' @export
 setMethod(
   "initialize",
   "mhspec",
@@ -200,7 +201,9 @@ setMethod(
   }
 )
 
-
+#' Unique coefficient matrix
+#'
+#' @export
 name_unique_coef_mtrx <- function(M, notation){
   reference <- character(length(M))
 
@@ -224,6 +227,8 @@ name_unique_coef_mtrx <- function(M, notation){
   reference
 }
 
+#' Extract the Hawkes model coefficients
+#'
 #' @export
 setMethod(
   "coef",

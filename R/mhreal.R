@@ -4,7 +4,7 @@
 #'
 #' @param res S3-object of mhreal
 #' @param n number of rows to diplay
-print.mhreal <- function(res, n=20){
+print.mhreal <- function(res, n=20, ...){
   options(digits=4)
   cat("------------------------------------------\n")
   cat("Simulation result of marked Hawkes model.\n")
@@ -135,9 +135,16 @@ get_lc_lambda <- function(res){
   lc_lambda_component
 }
 
+#' Plot function for mhreal
+#'
+#'
+#' @param x a mhreal object
+#' @param
+#'
 #' @export
-plot.mhreal <- function(res, ...){
+plot.mhreal <- function(x, y, ...){
 
+  res <- x
   dimens <- ncol(res$N)
   graphics::par(mfrow=c(dimens, 1))
 
@@ -210,7 +217,8 @@ dense_lambda <- function(arrival, lambda, beta, dt = NULL, ...){
 #' @param lambda a vector of lambda processs.
 #' @param beta a decaying parameter lambda.
 #' @param dt a small step size on time horizon.
-#'
+#' @param xlab x-lable
+#' @param ylab y-lable
 #'
 #' @examples
 #' MU1 <- 0.3; ALPHA1 <- 1.5; BETA1 <- 2

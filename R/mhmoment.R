@@ -2,6 +2,7 @@ setGeneric("get_lambda0", function(object, ...) standardGeneric("get_lambda0"))
 #' Get the long-run component of LAMBDA matrix
 #'
 #' @param object mhspec
+#' @export
 setMethod(
   f = "get_lambda0",
   signature(object = "mhspec"),
@@ -29,6 +30,8 @@ setGeneric("mean_lambda", function(object, ...) standardGeneric("mean_lambda"))
 #' @param mean_jump the mean of jump distribution. If not specified, simulated mean value will be used.
 #' @param sample_size the number of simulation to compute the mean of jump and squared jump
 #' @param seed_value seed for random number generation.
+#'
+#' @export
 setMethod(
   f = "mean_lambda",
   signature(object = "mhspec"),
@@ -105,6 +108,8 @@ setGeneric("var_diff", function(object, ...) standardGeneric("var_diff"))
 #' mark2 <- function(n,...) rgeom(n, 0.7) + 1
 #' mhspec2 <- new("mhspec", MU=MU2, ALPHA=ALPHA2, BETA=BETA2, ETA=ETA2, mark =mark2)
 #' var_diff(mhspec2, 1)
+#'
+#' @export
 setMethod(
   f = "var_diff",
   signature(object = "mhspec"),

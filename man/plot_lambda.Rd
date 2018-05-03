@@ -14,6 +14,10 @@ plot_lambda(arrival, lambda, beta, dt = NULL, xlab = "t", ylab = "lambda")
 \item{beta}{a decaying parameter lambda.}
 
 \item{dt}{a small step size on time horizon.}
+
+\item{xlab}{x-lable}
+
+\item{ylab}{y-lable}
 }
 \description{
 This plot method describes the exponentially decaying lambda (intensity) process.
